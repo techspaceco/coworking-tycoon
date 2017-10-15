@@ -13,11 +13,16 @@ var SalesGenerator = {
       var size = lead.size();
 
       AppStore.spaces().forEach(function (space) {
-        var closed, mis;
-
         if (space.hasAvailabilityFor(size)) {
-          closed = ((Math.random() * (100 - salesLevel) + salesLevel) * 0.01 > 0.9);
-          
+          let salesLevel = AppStore.salesLevel();
+          let damping = 10;
+          let power = (1 + salesLevel) / damping;
+          let minChanceOfClose = 0;
+          let maxChanceOfClose = (2 ** power) / ((2 ** power) + 1);
+          let closed = (
+            Math.random() * (maxChanceOfClose - minChanceOfClose) + minChanceOfClose > 0.5
+          )
+
           if (closed) {
             space.onboard(new MemberCompany({
               size: size,
@@ -26,7 +31,7 @@ var SalesGenerator = {
 
             lead.setClosedOn(AppStore.date());
 
-            mis = AppStore.managementInformationSystem();
+            let mis = AppStore.managementInformationSystem();
             mis.clearOccupancyCache(); // TODO: Flux pattern
             mis.addSale(lead);
           }
