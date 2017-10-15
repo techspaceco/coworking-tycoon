@@ -1,0 +1,202 @@
+var InterfaceRepainter;
+
+(function () {
+  var mostRecentDealId;
+
+  InterfaceRepainter= {
+    call: function () {
+      function memberUserCount() {
+        var count = 0;
+    
+        AppStore.spaces().forEach(function (space) {
+          space.memberCompanies().forEach(function (company) {
+            count += company.size();
+          });
+        });
+    
+        return count;
+      }
+
+      var mis = AppStore.managementInformationSystem();
+      var dm = mis.decorate();
+      var bankBalance = AppStore.bankAccount().balance();
+  
+      // Header
+      document.getElementById('date').innerHTML = Util.formatDate(AppStore.date());
+      document.getElementById('member-count').innerHTML = Util.numberWithCommas(memberUserCount());
+  
+      // Finance
+      document.getElementById('balance').innerHTML = AppStore.bankAccount().decorate().balance();
+      document.getElementById('monthly-revenue').innerHTML = dm.monthlyRevenue();
+      document.getElementById('monthly-overheads').innerHTML = dm.monthlyOverheads();
+      document.getElementById('quarterly-rent-bill').innerHTML = dm.quarterlyRentBill();
+      document.getElementById('gross-margin').innerHTML = dm.grossMargin();
+
+      var cashLowEl = document.getElementById('forecast-cash-low');
+      cashLowEl.innerHTML = dm.foreCastCashLow();
+
+      var cashLow = mis.foreCastCashLow();
+      var revenue = mis.monthlyRevenue();
+      var cashLowOverRevenue = cashLow / revenue;
+
+      if (cashLow <= 0) {
+        cashLowEl.className = 'text-danger';
+      } else if (cashLowOverRevenue < 2) {
+        cashLowEl.className = 'text-danger';
+      } else if (cashLowOverRevenue < 3) {
+        cashLowEl.className = 'text-warning';
+      } else {
+        cashLowEl.className = '';
+      }
+
+      // Product
+      document.getElementById('workstation-price').innerHTML = dm.workstationPrice();
+      document.getElementById('density').innerHTML = dm.density();
+
+      // Community
+      document.getElementById('occupancy').innerHTML = dm.occupancy();
+      document.getElementById('monthly-churn-volume').innerHTML = dm.monthlyChurnVolume();
+
+      // Sales
+      document.getElementById('sales-level').innerHTML = Util.numberWithCommas(AppStore.salesLevel());
+      document.getElementById('monthly-sales-volume').innerHTML = dm.monthlySalesVolume();
+      document.getElementById('sales-level-up-cost').innerHTML = dm.salesLevelUpCost();
+
+      var salesLevelUpButton = document.getElementById('sales-level-up-button');
+      
+      if (AppStore.salesLevelUpCost() > bankBalance) {
+        salesLevelUpButton.disabled = 'disabled';
+      } else {
+        salesLevelUpButton.disabled = '';
+      }
+
+      // Marketing
+      document.getElementById('marketing-level').innerHTML = Util.numberWithCommas(AppStore.marketingLevel());
+      document.getElementById('monthly-lead-volume').innerHTML = dm.monthlyLeadVolume();
+      document.getElementById('marketing-level-up-cost').innerHTML = dm.marketingLevelUpCost();
+
+      var marketingLevelUpButton = document.getElementById('marketing-level-up-button');
+
+      if (AppStore.marketingLevelUpCost() > bankBalance) {
+        marketingLevelUpButton.disabled = 'disabled';
+      } else {
+        marketingLevelUpButton.disabled = '';
+      }
+
+      // Development
+      document.getElementById('space-count').innerHTML = Util.numberWithCommas(AppStore.spaces().length);
+      document.getElementById('space-total-area').innerHTML = dm.totalArea();
+  
+      var dealsEl = document.getElementById('deals');
+  
+      var deals = RealEstateMarketStore.deals();
+
+      var newMostRecentDealId;
+
+      if (!deals.length) {
+        dealsEl.innerHTML = 'Nothing on the market right now.';
+      } else {
+        newMostRecentDealId = deals[deals.length - 1].id;
+
+        mostRecentDealId = newMostRecentDealId;
+        dealsEl.innerHTML = '';
+
+        RealEstateMarketStore.deals().forEach(function (deal) {
+          var lease = deal.lease();
+
+          var el = document.createElement('div');
+          el.className = 'border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3';
+  
+          var priceEl = document.createElement('p');
+          priceEl.innerHTML = 'Price: ' + lease.decorate().pricePerSquareFoot();
+          el.appendChild(priceEl);
+  
+          var areaEl = document.createElement('p');
+          areaEl.innerHTML = 'Area: ' + lease.decorate().area();
+          el.appendChild(areaEl);
+  
+          var depositEl = document.createElement('p');
+          depositEl.innerHTML = 'Deposit: ' + lease.decorate().deposit();
+          el.appendChild(depositEl);
+  
+          var leaseBuyButton = document.createElement('button');
+          leaseBuyButton.innerHTML = 'Buy';
+          el.appendChild(leaseBuyButton);
+  
+          if (bankBalance >= lease.deposit()) {
+            let cashLowAfterDeposit = cashLow - lease.deposit();
+            let cashLowAfterDepositOverRevenue = cashLowAfterDeposit / revenue;
+
+            leaseBuyButton.disabled = '';
+
+            if (cashLowAfterDeposit <= 0) {
+              leaseBuyButton.className = 'text-danger';
+            } else if (cashLowAfterDepositOverRevenue < 2) {
+              leaseBuyButton.className = 'text-danger';
+            } else if (cashLowAfterDepositOverRevenue < 3) {
+              leaseBuyButton.className = 'text-warning';
+            } else {
+              leaseBuyButton.className = '';
+            }
+  
+            leaseBuyButton.addEventListener('mousedown', function () {
+              LeasePurchaser.call(deal);
+            });
+          } else {
+            leaseBuyButton.disabled = 'disabled';
+          }
+  
+          dealsEl.appendChild(el);
+        });
+      }
+
+      var projectsEl = document.getElementById('projects');
+      projectsEl.innerHTML = '';
+
+      var projects = ProjectStore.projects();
+
+      if (!projects.length) {
+        projectsEl.innerHTML = 'No projects right now.';
+      } else {
+        projects.forEach(function (project) {
+          p = project.decorate();
+
+          var el = document.createElement('div');
+          el.className = 'border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3';
+
+          var titleEl = document.createElement('h5');
+          titleEl.innerHTML = p.title();
+          el.appendChild(titleEl);
+
+          var descriptionEl = document.createElement('p');
+          descriptionEl.innerHTML = p.description();
+          el.appendChild(descriptionEl);
+
+          var oneOffCostEl = document.createElement('p');
+          oneOffCostEl.innerHTML = 'One-off cost: ' + p.oneOffCost();
+          el.appendChild(oneOffCostEl);
+
+          var monthlyCostEl = document.createElement('p');
+          monthlyCostEl.innerHTML = 'Monthly cost: ' + p.monthlyCost();
+          el.appendChild(monthlyCostEl);
+
+          var goButton = document.createElement('button');
+          goButton.innerHTML = 'Go';
+          el.appendChild(goButton);
+
+          if (bankBalance >= project.oneOffCost()) {
+            goButton.disabled = '';
+
+            goButton.addEventListener('mousedown', function () {
+              ProjectRunner.call(project);
+            });
+          } else {
+            goButton.disabled = 'disabled';
+          }
+
+          projectsEl.appendChild(el);
+        });
+      }
+    }
+  };    
+})();

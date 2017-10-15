@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+
+    <link
+      rel='stylesheet'
+      href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css'
+      integrity='sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M'
+      crossorigin='anonymous'
+    >
+    <link href='./css/app.css' rel='stylesheet' type='text/css'>
+    <script src='./js/lib/logger.js'></script>
+    <script src='./js/lib/util.js'></script>
+    <script src='./js/models/bank_account.js'></script>
+    <script src='./js/models/lead.js'></script>
+    <script src='./js/models/lease.js'></script>
+    <script src='./js/models/lease_deal.js'></script>
+    <script src='./js/models/management_information_system.js'></script>
+    <script src='./js/models/member_company.js'></script>
+    <script src='./js/models/project.js'></script>
+    <script src='./js/models/space.js'></script>
+    <script src='./js/decorators/bank_account_decorator.js'></script>
+    <script src='./js/decorators/lease_decorator.js'></script>
+    <script src='./js/decorators/management_information_system_decorator.js'></script>
+    <script src='./js/decorators/project_decorator.js'></script>
+    <script src='./js/services/daily_churn.js'></script>
+    <script src='./js/services/interface_repainter.js'></script>
+    <script src='./js/services/lead_generator.js'></script>
+    <script src='./js/services/lease_purchaser.js'></script>
+    <script src='./js/services/monthly_bill_payer.js'></script>
+    <script src='./js/services/monthly_licence_fee_collector.js'></script>
+    <script src='./js/services/project_runner.js'></script>
+    <script src='./js/services/quarterly_rent_payer.js'></script>
+    <script src='./js/services/sales_generator.js'></script>
+    <script src='./js/stores/app_store.js'></script>
+    <script src='./js/stores/project_store.js'></script>
+    <script src='./js/stores/real_estate_market_store.js'></script>
+    <script src='./js/app.js'></script>
+  </head>
+  <body>
+    <div id='console'></div>
+
+    <div class='container-fluid'>
+      <div class='row pt-3 pb-2'>
+        <div class='col'>
+          <h3><strong><span id='member-count'></span> Members</strong></h3>
+        </div>
+
+        <div class='col'>
+          <span id='date' class='float-right'></span>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>Finance</h4>
+
+              <p>
+                Bank balance:
+                <span id='balance'></span>
+              </p>
+
+              <p>
+                Forecast cash low:
+                <span id='forecast-cash-low'></span>
+              </p>
+
+              <p>
+                Revenue:
+                <span id='monthly-revenue'></span>
+              </p>
+
+              <p>
+                Overheads:
+                <span id='monthly-overheads'></span>
+              </p>
+
+              <p>
+                Rent:
+                <span id='quarterly-rent-bill'></span>
+                per quarter
+              </p>
+
+              <p>
+                Gross margin:
+                <span id='gross-margin'></span>
+              </p>
+            </div>
+          </div>
+
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>Product</h4>
+
+              <p>
+                Workstation price:
+                <span id='workstation-price'></span>
+              </p>
+
+              <p>
+                Density:
+                <span id='density'></span>
+              </p>
+            </div>
+          </div>
+
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>Development</h4>
+
+              <p>
+                Number of spaces:
+                <span id='space-count'></span>
+              </p>
+
+              <p>
+                Total area:
+                <span id='space-total-area'></span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class='col'>
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>Community</h4>
+
+              <p>
+                Occupancy:
+                <span id='occupancy'></span>
+              </p>
+
+              <p>
+                Churn:
+                <span id='monthly-churn-volume'></span>
+              </p>
+            </div>
+          </div>
+        
+
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>
+                Sales
+                <small class='text-muted'>
+                  Level <span id='sales-level'></span>
+                </small>
+              </h4>
+
+              <p>
+                <button id='sales-level-up-button'>Level up</button>
+                <span id='sales-level-up-cost'></span>
+              </p>
+
+              <p>
+                Sales volume:
+                <span id='monthly-sales-volume'></span>
+              </p>
+            </div>
+          </div>
+
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>
+                Marketing
+                <small class='text-muted'>
+                  Level <span id='marketing-level'></span>
+                </small>
+              </h4>
+
+              <p>
+                <button id='marketing-level-up-button'>Level up</button>
+                <span id='marketing-level-up-cost'></span>
+              </p>
+
+              <p>
+                Lead volume:
+                <span id='monthly-lead-volume'></span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class='col'>
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>Projects</h4>
+
+              <div id='projects'></div>
+            </div>
+          </div>
+        </div>
+
+        <div class='col'>
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'>Real Estate Market</h4>
+
+              <div id='deals'></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

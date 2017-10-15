@@ -1,0 +1,8 @@
+#console {
+  color: #fff;
+  background-color: #000;
+  padding: 1em;
+  font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;
+  height: 100px;
+  font-size: 12px;
+}
