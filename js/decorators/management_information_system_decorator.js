@@ -44,11 +44,15 @@ var ManagementInformationSystemDecorator;
     };
 
     this.monthlyChurnVolume = function () {
-      return mis.monthlyChurnVolume() + ' workstations per month';
+      return Util.numberWithCommas(
+        mis.monthlyChurnVolume() + ' workstations per month'
+      );
     };
 
     this.monthlyLeadVolume = function () {
-      return mis.monthlyLeadVolume() + ' workstations per month';
+      return Util.numberWithCommas(
+        mis.monthlyLeadVolume() + ' workstations per month'
+      );
     };
 
     this.monthlyOverheads = function () {
@@ -60,7 +64,9 @@ var ManagementInformationSystemDecorator;
     };
 
     this.monthlySalesVolume = function () {
-      return mis.monthlySalesVolume() + ' workstations per month';
+      return Util.numberWithCommas(
+        mis.monthlySalesVolume() + ' workstations per month'
+      );
     };
 
     this.grossMargin = function () {
