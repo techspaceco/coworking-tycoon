@@ -63,6 +63,22 @@ var InterfaceRepainter;
       document.getElementById('sales-level-up-cost').innerHTML = dm.salesLevelUpCost();
 
       var salesLevelUpButton = document.getElementById('sales-level-up-button');
+
+      var salesLevelUpCost = AppStore.salesLevelUpCost()
+      var cashLowAfterSalesLevelUp = cashLow - AppStore.salesLevelUpCost();
+      var cashLowAfterSalesLevelUpOverRevenue = cashLowAfterSalesLevelUp / revenue;
+
+      salesLevelUpButton.disabled = '';
+
+      if (cashLowAfterSalesLevelUp <= 0) {
+        salesLevelUpButton.className = 'text-danger';
+      } else if (cashLowAfterSalesLevelUpOverRevenue < 2) {
+        salesLevelUpButton.className = 'text-danger';
+      } else if (cashLowAfterSalesLevelUpOverRevenue < 3) {
+        salesLevelUpButton.className = 'text-warning';
+      } else {
+        salesLevelUpButton.className = '';
+      }
       
       if (AppStore.salesLevelUpCost() > bankBalance) {
         salesLevelUpButton.disabled = 'disabled';
@@ -76,6 +92,22 @@ var InterfaceRepainter;
       document.getElementById('marketing-level-up-cost').innerHTML = dm.marketingLevelUpCost();
 
       var marketingLevelUpButton = document.getElementById('marketing-level-up-button');
+
+      var marketingLevelUpCost = AppStore.marketingLevelUpCost()
+      var cashLowAfterMarketingLevelUp = cashLow - AppStore.marketingLevelUpCost();
+      var cashLowAfterMarketingLevelUpOverRevenue = cashLowAfterMarketingLevelUp / revenue;
+
+      marketingLevelUpButton.disabled = '';
+
+      if (cashLowAfterMarketingLevelUp <= 0) {
+        marketingLevelUpButton.className = 'text-danger';
+      } else if (cashLowAfterMarketingLevelUpOverRevenue < 2) {
+        marketingLevelUpButton.className = 'text-danger';
+      } else if (cashLowAfterMarketingLevelUpOverRevenue < 3) {
+        marketingLevelUpButton.className = 'text-warning';
+      } else {
+        marketingLevelUpButton.className = '';
+      }
 
       if (AppStore.marketingLevelUpCost() > bankBalance) {
         marketingLevelUpButton.disabled = 'disabled';
