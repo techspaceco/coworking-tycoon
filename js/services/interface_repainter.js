@@ -55,7 +55,7 @@ var InterfaceRepainter;
 
       // Community
       document.getElementById('occupancy').innerHTML = dm.occupancy();
-      document.getElementById('monthly-churn-volume').innerHTML = dm.monthlyChurnVolume();
+      document.getElementById('monthly-churn-rate').innerHTML = dm.monthlyChurnRate();
 
       // Sales
       document.getElementById('sales-level').innerHTML = Util.numberWithCommas(AppStore.salesLevel());

@@ -57,6 +57,12 @@ var AppStore;
       return density;
     },
 
+    densityFactor: function () {
+      let weighting = 10;
+
+      return ((1 + (AppStore.defaultDensity() / AppStore.density()) ** weighting) / 2);
+    },
+
     incrementDensity: function () {
       density++;
     },

@@ -13,6 +13,7 @@ var ManagementInformationSystem;
     var monthlySales = [];
     var monthlySalesVolume = 0;
     var occupancy = null;
+    var occupiedWorkstation = 0;
     var quarterlyRentBill = 0;
     var totalArea = 0;
 
@@ -114,8 +115,10 @@ var ManagementInformationSystem;
       return this.monthlyLicenceFeeRevenue();
     };
 
-    this.monthlyChurnVolume = function () {
-      return monthlyChurnVolume;
+    this.monthlyChurnRate = function () {
+      return monthlyChurnVolume === 0 ? 0 : (
+        monthlyChurnVolume / occupiedWorkstations
+      );
     };
 
     this.monthlyLeadVolume = function () {
@@ -138,8 +141,9 @@ var ManagementInformationSystem;
     };
 
     this.occupancy = function () {
-      var occupiedWorkstations = 0;
       var totalWorkstations = 0;
+
+      occupiedWorkstations = 0;
 
       if (occupancy === null) {
         AppStore.spaces().forEach(function (space) {

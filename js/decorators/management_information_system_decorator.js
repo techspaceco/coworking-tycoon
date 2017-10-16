@@ -43,9 +43,9 @@ var ManagementInformationSystemDecorator;
       );
     };
 
-    this.monthlyChurnVolume = function () {
+    this.monthlyChurnRate = function () {
       return Util.numberWithCommas(
-        mis.monthlyChurnVolume() + ' workstations per month'
+        parseInt(mis.monthlyChurnRate() * 100) + '%'
       );
     };
 
