@@ -11,8 +11,6 @@ var MonthlyBillPayer = {
         billTotal += space.monthlyBillTotal();
       });
 
-      billTotal += ProjectStore.monthlyProjectCosts();
-
       AppStore.bankAccount().withdraw(billTotal);
     }
   };

@@ -5,25 +5,13 @@ var InterfaceRepainter;
 
   InterfaceRepainter= {
     call: function () {
-      function memberUserCount() {
-        var count = 0;
-    
-        AppStore.spaces().forEach(function (space) {
-          space.memberCompanies().forEach(function (company) {
-            count += company.size();
-          });
-        });
-    
-        return count;
-      }
-
       var mis = AppStore.managementInformationSystem();
       var dm = mis.decorate();
       var bankBalance = AppStore.bankAccount().balance();
   
       // Header
       document.getElementById('date').innerHTML = Util.formatDate(AppStore.date());
-      document.getElementById('member-count').innerHTML = Util.numberWithCommas(memberUserCount());
+      document.getElementById('member-count').innerHTML = Util.numberWithCommas(mis.memberUserCount());
   
       // Finance
       document.getElementById('balance').innerHTML = AppStore.bankAccount().decorate().balance();
@@ -200,23 +188,19 @@ var InterfaceRepainter;
           titleEl.innerHTML = p.title();
           el.appendChild(titleEl);
 
+          var conditionsEl = document.createElement('p');
+          conditionsEl.innerHTML = p.conditions();
+          el.appendChild(conditionsEl);
+
           var descriptionEl = document.createElement('p');
           descriptionEl.innerHTML = p.description();
           el.appendChild(descriptionEl);
-
-          var oneOffCostEl = document.createElement('p');
-          oneOffCostEl.innerHTML = 'One-off cost: ' + p.oneOffCost();
-          el.appendChild(oneOffCostEl);
-
-          var monthlyCostEl = document.createElement('p');
-          monthlyCostEl.innerHTML = 'Monthly cost: ' + p.monthlyCost();
-          el.appendChild(monthlyCostEl);
 
           var goButton = document.createElement('button');
           goButton.innerHTML = 'Go';
           el.appendChild(goButton);
 
-          if (bankBalance >= project.oneOffCost()) {
+          if (project.conditionsMet()) {
             goButton.disabled = '';
 
             goButton.addEventListener('mousedown', function () {

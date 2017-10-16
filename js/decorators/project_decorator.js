@@ -2,22 +2,12 @@ var ProjectDecorator;
 
 (function () {
   ProjectDecorator = function (project) {
+    this.conditions = function () {
+      return project.conditions();
+    };
+
     this.description = function () {
       return project.description();
-    };
-
-    this.monthlyCost = function () {
-      return (
-        Util.htmlCurrencySymbolMap[project.currency()] +
-        Util.numberWithCommas(project.monthlyCost())
-      );
-    };
-
-    this.oneOffCost = function () {
-      return (
-        Util.htmlCurrencySymbolMap[project.currency()] +
-        Util.numberWithCommas(project.oneOffCost())
-      );
     };
 
     this.title = function () {

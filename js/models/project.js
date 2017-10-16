@@ -1,10 +1,18 @@
 function Project(options) {
+  var callback = options.callback;
+  var conditions = options.conditions;
+  var conditionsMet = options.conditionsMet;
   var defaultCurrency = 'GBP';
   var description = options.description;
-  var monthlyCost = options.monthlyCost;
-  var oneOffCost = options.oneOffCost;
   var title = options.title;
-  var callback = options.callback;
+
+  this.conditions = function () {
+    return conditions;
+  };
+
+  this.conditionsMet = function () {
+    return conditionsMet.call();
+  };
 
   this.currency = function () {
     return defaultCurrency;
@@ -16,14 +24,6 @@ function Project(options) {
 
   this.description = function () {
     return description;
-  };
-
-  this.monthlyCost = function () {
-    return monthlyCost;
-  };
-
-  this.oneOffCost = function () {
-    return oneOffCost;
   };
 
   this.run = function () {

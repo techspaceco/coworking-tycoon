@@ -2,32 +2,20 @@ var ProjectStore;
 
 (function () {
   var projects = [
-    /*
     new Project({
-      title: 'Marketing Strategy Consultant',
-      description: 'Increase you ability to generate leads.',
-      oneOffCost: 20000,
-      monthlyCost: 0,
+      title: 'Raise Series A',
+      description: 'Injection of £5m for growth',
+      conditions: '100 members',
+      conditionsMet: function () {
+        return AppStore.managementInformationSystem().memberUserCount() > 100;
+      },
       callback: function () {
-        AppStore.incrementMarketingLevel();
+        AppStore.bankAccount().deposit(5000000);
       }
     })
-    */
   ];
 
-  var monthlyProjectCosts = 0;
-
   ProjectStore = {
-    addToMonthlyProjectCosts: function (cost) {
-      monthlyProjectCosts += cost;
-
-      return true;
-    },
-
-    monthlyProjectCosts: function () {
-      return monthlyProjectCosts;
-    },
-
     projects: function () {
       return projects;
     },

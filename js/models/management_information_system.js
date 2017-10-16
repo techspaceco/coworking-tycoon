@@ -95,7 +95,19 @@ var ManagementInformationSystem;
 
     this.maxPricePerSquareFoot = function () {
       return maxPricePerSquareFoot;
-    }
+    };
+
+    this.memberUserCount = function () {
+      var count = 0;
+
+      AppStore.spaces().forEach(function (space) {
+        space.memberCompanies().forEach(function (company) {
+          count += company.size();
+        });
+      });
+
+      return count;
+    };
 
     this.monthlyLicenceFeeRevenue = function () {
       return monthlyLicenceFeeRevenue;
@@ -106,8 +118,7 @@ var ManagementInformationSystem;
         this.monthlyBusinessRatesCost() +
         this.monthlyRepairsAndMaintenanceCost() +
         this.monthlyUtilitiesCost() +
-        this.monthlyStaffCost() +
-        this.monthlyProjectCosts()
+        this.monthlyStaffCost()
       );
     };
 
@@ -123,10 +134,6 @@ var ManagementInformationSystem;
 
     this.monthlyLeadVolume = function () {
       return monthlyLeadVolume;
-    };
-
-    this.monthlyProjectCosts = function () {
-      return ProjectStore.monthlyProjectCosts();
     };
 
     this.monthlySalesVolume = function () {
