@@ -27,10 +27,13 @@ var MemberCompany;
     };
 
     this.wantsToLeave = function () {
+      let densityFactor = AppStore.defaultDensity() / AppStore.density();
+
       // TODO: Add more factors and weightings
       var churnFactor = 0.00007; // Higher for more churn
       var dailyChurn = (
         churnFactor *
+        densityFactor *
         AppStore.workstationPrice() /
         AppStore.repairsAndMaintenanceRate()
       );

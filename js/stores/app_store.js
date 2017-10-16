@@ -4,7 +4,9 @@ var AppStore;
   var bankAccount = new BankAccount('35000');
   var businessRatesRate = 10;
   var date = new Date('2014-09-01');
-  var density = 57;
+  var defaultDensity = 57;
+  var defaultWorkstationPrice = 275;
+  var density = defaultDensity;
   var marketingLevel = 1;
   var mis = new ManagementInformationSystem();
   var repairsAndMaintenanceRate = 4;
@@ -12,7 +14,7 @@ var AppStore;
   var spaces = [];
   var staffRate = 3;
   var utilitiesRate = 2;
-  var workstationPrice = 275;
+  var workstationPrice = defaultWorkstationPrice;
 
   AppStore = {
     addSpace: function (space) {
@@ -31,12 +33,32 @@ var AppStore;
       return date;
     },
 
+    decrementDensity: function () {
+      density--;
+
+      return true;
+    },
+
     decrementWorkstationPrice: function () {
       workstationPrice--;
+
+      return true;
+    },
+
+    defaultDensity: function () {
+      return defaultDensity;
+    },
+
+    defaultWorkstationPrice: function () {
+      return defaultWorkstationPrice;
     },
 
     density: function () {
       return density;
+    },
+
+    incrementDensity: function () {
+      density++;
     },
 
     incrementMarketingLevel: function () {

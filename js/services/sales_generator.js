@@ -17,9 +17,17 @@ var SalesGenerator = {
           let salesLevel = AppStore.salesLevel();
           let damping = 10;
           let power = (1 + salesLevel) / damping;
-          let pricingFactor = 275 / AppStore.workstationPrice();
+          let pricingFactor = AppStore.defaultWorkstationPrice() / AppStore.workstationPrice();
+          let densityFactor = AppStore.defaultDensity() / AppStore.density();
           let minChanceOfClose = 0;
-          let maxChanceOfClose = pricingFactor * (2 ** power) / ((2 ** power) + 1);
+
+          let maxChanceOfClose = (
+            pricingFactor *
+            densityFactor *
+            (2 ** power) /
+            ((2 ** power) + 1)
+          );
+
           let closed = (
             Math.random() * (maxChanceOfClose - minChanceOfClose) + minChanceOfClose > 0.5
           )

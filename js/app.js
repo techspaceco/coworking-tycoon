@@ -26,6 +26,16 @@
     increaseWorkstationPriceButton.addEventListener('mousedown', function () {
       AppStore.incrementWorkstationPrice();
     });
+
+    var decreaseDensityButton = document.getElementById('decrease-density');
+    decreaseDensityButton.addEventListener('mousedown', function () {
+      AppStore.decrementDensity();
+    });
+
+    var increaseDensityButton = document.getElementById('increase-density');
+    increaseDensityButton.addEventListener('mousedown', function () {
+      AppStore.incrementDensity();
+    });
   }
 
   function handleQuarterChange() {
