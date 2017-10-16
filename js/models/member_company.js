@@ -27,8 +27,14 @@ var MemberCompany;
     };
 
     this.wantsToLeave = function () {
-      // TODO: Add factors
-      var dailyChurn = 0.002;
+      // TODO: Add more factors and weightings
+      var churnFactor = 0.00007; // Higher for more churn
+      var dailyChurn = (
+        churnFactor *
+        AppStore.workstationPrice() /
+        AppStore.repairsAndMaintenanceRate()
+      );
+
       return Math.random() < dailyChurn;
     }
   };

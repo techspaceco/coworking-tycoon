@@ -16,6 +16,16 @@
     salesLevelUpButton.addEventListener('mousedown', function () {
       AppStore.incrementSalesLevel();
     });
+
+    var decreaseWorkstationPriceButton = document.getElementById('decrease-workstation-price');
+    decreaseWorkstationPriceButton.addEventListener('mousedown', function () {
+      AppStore.decrementWorkstationPrice();
+    });
+
+    var increaseWorkstationPriceButton = document.getElementById('increase-workstation-price');
+    increaseWorkstationPriceButton.addEventListener('mousedown', function () {
+      AppStore.incrementWorkstationPrice();
+    });
   }
 
   function handleQuarterChange() {

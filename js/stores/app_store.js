@@ -31,6 +31,10 @@ var AppStore;
       return date;
     },
 
+    decrementWorkstationPrice: function () {
+      workstationPrice--;
+    },
+
     density: function () {
       return density;
     },
@@ -47,6 +51,12 @@ var AppStore;
       AppStore.bankAccount().withdraw(this.salesLevelUpCost());
 
       salesLevel++;
+
+      return true;
+    },
+
+    incrementWorkstationPrice: function () {
+      workstationPrice++;
 
       return true;
     },
