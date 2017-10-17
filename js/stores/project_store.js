@@ -1,13 +1,15 @@
 var ProjectStore;
 
 (function () {
+  var seriesAMemberCount = 720;
+
   var projects = [
     new Project({
       title: 'Raise Series A',
-      description: 'Injection of £5m for growth',
-      conditions: '100 members',
+      description: 'Injection of £5m for growth.',
+      conditions: seriesAMemberCount + ' members',
       conditionsMet: function () {
-        return AppStore.managementInformationSystem().memberUserCount() > 100;
+        return AppStore.managementInformationSystem().memberUserCount() > seriesAMemberCount;
       },
       callback: function () {
         AppStore.bankAccount().deposit(5000000);
