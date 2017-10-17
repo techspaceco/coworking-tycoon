@@ -53,8 +53,6 @@
     DailyChurn.call();
 
     mis.recalculateMonthlyChurn();
-    mis.recalculateMonthlySales();
-    mis.recalculateMonthlyLeads();
   }
 
   function main() {

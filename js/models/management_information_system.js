@@ -20,11 +20,51 @@ var ManagementInformationSystem;
     this.addLead = function (newLead) {
       monthlyLeads.push(newLead);
 
+      var endOfPreviousMonthFound = false;
+
+      monthlyLeads.forEach(function (lead, index) {
+        var createdOn = lead.createdOn();
+        var thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setTime(AppStore.date().getTime())
+        Util.addDays(thirtyDaysAgo, -30);
+
+        if (createdOn < thirtyDaysAgo) {
+          monthlyLeads.splice(index, 1);
+        } else if (createdOn === thirtyDaysAgo) {
+          return;
+        }
+      });
+
+      monthlyLeadVolume = 0;
+
+      monthlyLeads.forEach(function (lead) {
+        monthlyLeadVolume += lead.size();
+      });
+
       return true;
     };
 
     this.addSale = function (newSale) {
       monthlySales.push(newSale);
+
+      monthlySales.forEach(function (sale, index) {
+        var closedOn = sale.closedOn();
+        var thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setTime(AppStore.date().getTime())
+        Util.addDays(thirtyDaysAgo, -30);
+
+        if (closedOn < thirtyDaysAgo) {
+          monthlySales.splice(index, 1);
+        } else if (closedOn === thirtyDaysAgo) {
+          return;
+        }
+      });
+
+      monthlySalesVolume = 0;
+
+      monthlySales.forEach(function (sale) {
+        monthlySalesVolume += sale.size();
+      });
 
       return true;
     };
@@ -181,42 +221,6 @@ var ManagementInformationSystem;
 
       monthlyChurn.forEach(function (company) {
         monthlyChurnVolume += company.size();
-      });
-    };
-
-    this.recalculateMonthlyLeads = function () {
-      monthlyLeads.forEach(function (lead, index) {
-        var thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setTime(AppStore.date().getTime())
-        Util.addDays(thirtyDaysAgo, -30);
-
-        if (lead.createdOn() < thirtyDaysAgo) {
-          monthlyLeads.splice(index, 1);
-        }
-      });
-
-      monthlyLeadVolume = 0;
-
-      monthlyLeads.forEach(function (lead) {
-        monthlyLeadVolume += lead.size();
-      });
-    };
-
-    this.recalculateMonthlySales = function () {
-      monthlySales.forEach(function (sale, index) {
-        var thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setTime(AppStore.date().getTime())
-        Util.addDays(thirtyDaysAgo, -30);
-
-        if (sale.closedOn() < thirtyDaysAgo) {
-          monthlySales.splice(index, 1);
-        }
-      });
-
-      monthlySalesVolume = 0;
-
-      monthlySales.forEach(function (sale) {
-        monthlySalesVolume += sale.size();
       });
     };
 
