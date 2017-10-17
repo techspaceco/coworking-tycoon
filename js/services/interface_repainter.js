@@ -188,9 +188,10 @@ var InterfaceRepainter;
           titleEl.innerHTML = p.title();
           el.appendChild(titleEl);
 
-          var conditionsEl = document.createElement('p');
-          conditionsEl.innerHTML = p.conditions();
-          el.appendChild(conditionsEl);
+          var conditionsEl = document.createElement('small');
+          conditionsEl.className = 'text-muted'
+          conditionsEl.innerHTML = ' ' + p.conditions();
+          titleEl.appendChild(conditionsEl);
 
           var descriptionEl = document.createElement('p');
           descriptionEl.innerHTML = p.description();
