@@ -34,6 +34,7 @@ var ProjectStore;
       },
       callback: function () {
         AppStore.bankAccount().deposit(10000000);
+        seriesBComplete = true;
       }
     }),
     new Project({
@@ -48,6 +49,7 @@ var ProjectStore;
       },
       callback: function () {
         AppStore.bankAccount().deposit(20000000);
+        seriesCComplete = true;
       }
     }),
     new Project({
