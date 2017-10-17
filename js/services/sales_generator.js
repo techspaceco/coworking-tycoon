@@ -22,9 +22,11 @@ var SalesGenerator = {
 
           let maxChanceOfClose = (
             pricingFactor *
-            AppStore.densityFactor() *
             (2 ** power) /
-            ((2 ** power) + 1)
+            (
+              ((2 ** power) + 1) *
+              AppStore.densityFactor()
+            )
           );
 
           let closed = (
