@@ -98,7 +98,9 @@ var AppStore;
     },
 
     marketingLevelUpCost: function () {
-      return (2 ** marketingLevel) * 500;
+      var damping = 2;
+
+      return parseInt((2 ** (marketingLevel / damping)) * 1000);
     },
 
     repairsAndMaintenanceRate: function () {
@@ -110,7 +112,9 @@ var AppStore;
     },
 
     salesLevelUpCost: function () {
-      return (2 ** salesLevel) * 500;
+      var damping = 2;
+
+      return parseInt((2 ** (salesLevel / damping)) * 1000);
     },
 
     spaces: function () {
