@@ -56,7 +56,7 @@
   }
 
   function main() {
-    InterfaceRepainter.call();
+    requestAnimationFrame(InterfaceRepainter.call);
 
     if (AppStore.spaces().length === 0) {
       return;
@@ -75,10 +75,10 @@
     SalesGenerator.call(LeadGenerator.call());
 
     var newMonth = date.getMonth();
-    
+
     if (newMonth !== currentMonth) {
       currentMonth = newMonth;
-    
+
       handleMonthChange();
     }
 
