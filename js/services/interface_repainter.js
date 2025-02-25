@@ -2,127 +2,198 @@ var InterfaceRepainter;
 
 (function () {
   var mostRecentDealId;
+  var cachedDealIds = [];
+  var cachedProjectIds = [];
+  
+  // Helper to update text content and class only when changed
+  function updateElement(id, content, className) {
+    var el = document.getElementById(id);
+    if (el.innerHTML !== content) {
+      el.innerHTML = content;
+    }
+    if (className !== undefined && el.className !== className) {
+      el.className = className;
+    }
+  }
 
-  InterfaceRepainter= {
+  InterfaceRepainter = {
     call: function () {
       var mis = AppStore.managementInformationSystem();
       var dm = mis.decorate();
       var bankBalance = AppStore.bankAccount().balance();
-  
-      // Header
-      document.getElementById('date').innerHTML = Util.formatDate(AppStore.date());
-      document.getElementById('member-count').innerHTML = Util.numberWithCommas(mis.memberUserCount());
-  
-      // Finance
-      document.getElementById('balance').innerHTML = AppStore.bankAccount().decorate().balance();
-      document.getElementById('monthly-revenue').innerHTML = dm.monthlyRevenue();
-      document.getElementById('monthly-overheads').innerHTML = dm.monthlyOverheads();
-      document.getElementById('quarterly-rent-bill').innerHTML = dm.quarterlyRentBill();
-      document.getElementById('gross-margin').innerHTML = dm.grossMargin();
-
-      var cashLowEl = document.getElementById('forecast-cash-low');
-      cashLowEl.innerHTML = dm.foreCastCashLow();
-
       var cashLow = mis.foreCastCashLow();
       var revenue = mis.monthlyRevenue();
-      var cashLowOverRevenue = cashLow / revenue;
-
-      if (cashLow <= 0) {
-        cashLowEl.className = 'text-danger';
-      } else if (cashLowOverRevenue < 2) {
-        cashLowEl.className = 'text-danger';
+      var cashLowOverRevenue = revenue === 0 ? 0 : cashLow / revenue;
+      
+      // Determine classes outside of DOM operations
+      var cashLowClass = '';
+      if (cashLow <= 0 || cashLowOverRevenue < 2) {
+        cashLowClass = 'text-danger';
       } else if (cashLowOverRevenue < 3) {
-        cashLowEl.className = 'text-warning';
-      } else {
-        cashLowEl.className = '';
-      }
-
-      // Product
-      document.getElementById('workstation-price').innerHTML = dm.workstationPrice();
-      document.getElementById('density').innerHTML = dm.density();
-
-      // Community
-      document.getElementById('occupancy').innerHTML = dm.occupancy();
-      document.getElementById('monthly-churn-rate').innerHTML = dm.monthlyChurnRate();
-
-      // Sales
-      document.getElementById('sales-level').innerHTML = Util.numberWithCommas(AppStore.salesLevel());
-      document.getElementById('monthly-sales-volume').innerHTML = dm.monthlySalesVolume();
-      document.getElementById('sales-level-up-cost').innerHTML = dm.salesLevelUpCost();
-
-      var salesLevelUpButton = document.getElementById('sales-level-up-button');
-
-      var salesLevelUpCost = AppStore.salesLevelUpCost()
-      var cashLowAfterSalesLevelUp = cashLow - AppStore.salesLevelUpCost();
-      var cashLowAfterSalesLevelUpOverRevenue = cashLowAfterSalesLevelUp / revenue;
-
-      salesLevelUpButton.disabled = '';
-
-      if (cashLowAfterSalesLevelUp <= 0) {
-        salesLevelUpButton.className = 'text-danger';
-      } else if (cashLowAfterSalesLevelUpOverRevenue < 2) {
-        salesLevelUpButton.className = 'text-danger';
-      } else if (cashLowAfterSalesLevelUpOverRevenue < 3) {
-        salesLevelUpButton.className = 'text-warning';
-      } else {
-        salesLevelUpButton.className = '';
+        cashLowClass = 'text-warning';
       }
       
-      if (AppStore.salesLevelUpCost() > bankBalance) {
-        salesLevelUpButton.disabled = 'disabled';
+      // Header
+      updateElement('date', Util.formatDate(AppStore.date()));
+      updateElement('member-count', Util.numberWithCommas(mis.memberUserCount()));
+  
+      // Finance
+      updateElement('balance', AppStore.bankAccount().decorate().balance());
+      updateElement('monthly-revenue', dm.monthlyRevenue());
+      updateElement('monthly-overheads', dm.monthlyOverheads());
+      updateElement('quarterly-rent-bill', dm.quarterlyRentBill());
+      updateElement('gross-margin', dm.grossMargin());
+      updateElement('forecast-cash-low', dm.foreCastCashLow(), cashLowClass);
+      
+      // Product
+      updateElement('workstation-price', dm.workstationPrice());
+      updateElement('density', dm.density());
+
+      // Community
+      updateElement('occupancy', dm.occupancy());
+      updateElement('monthly-churn-rate', dm.monthlyChurnRate());
+
+      // Sales
+      updateElement('sales-level', Util.numberWithCommas(AppStore.salesLevel()));
+      updateElement('monthly-sales-volume', dm.monthlySalesVolume());
+      updateElement('sales-level-up-cost', dm.salesLevelUpCost());
+
+      var salesLevelUpButton = document.getElementById('sales-level-up-button');
+      var salesLevelUpCost = AppStore.salesLevelUpCost();
+      var cashLowAfterSalesLevelUp = cashLow - salesLevelUpCost;
+      var cashLowAfterSalesLevelUpOverRevenue = revenue === 0 ? 0 : cashLowAfterSalesLevelUp / revenue;
+      
+      // Apply consistent button styling
+      salesLevelUpButton.style.padding = '5px 15px';
+      salesLevelUpButton.style.borderRadius = '3px';
+      salesLevelUpButton.style.cursor = 'pointer';
+      salesLevelUpButton.style.fontWeight = 'bold';
+      
+      if (salesLevelUpCost > bankBalance) {
+        // Can't afford - disabled
+        salesLevelUpButton.disabled = true;
+        salesLevelUpButton.style.backgroundColor = '#6c757d';
+        salesLevelUpButton.style.color = 'white';
+        salesLevelUpButton.style.border = '1px solid #6c757d';
+        salesLevelUpButton.style.opacity = '0.65';
+      } else if (cashLowAfterSalesLevelUp <= 0 || cashLowAfterSalesLevelUpOverRevenue < 2) {
+        // Can afford but dangerous - red
+        salesLevelUpButton.disabled = false;
+        salesLevelUpButton.style.backgroundColor = '#dc3545';
+        salesLevelUpButton.style.color = 'white';
+        salesLevelUpButton.style.border = '1px solid #dc3545';
+        salesLevelUpButton.style.opacity = '1';
+      } else if (cashLowAfterSalesLevelUpOverRevenue < 3) {
+        // Can afford but risky - yellow
+        salesLevelUpButton.disabled = false;
+        salesLevelUpButton.style.backgroundColor = '#ffc107';
+        salesLevelUpButton.style.color = 'black';
+        salesLevelUpButton.style.border = '1px solid #ffc107';
+        salesLevelUpButton.style.opacity = '1';
       } else {
-        salesLevelUpButton.disabled = '';
+        // Can afford safely - green
+        salesLevelUpButton.disabled = false;
+        salesLevelUpButton.style.backgroundColor = '#28a745';
+        salesLevelUpButton.style.color = 'white';
+        salesLevelUpButton.style.border = '1px solid #28a745';
+        salesLevelUpButton.style.opacity = '1';
       }
 
       // Marketing
-      document.getElementById('marketing-level').innerHTML = Util.numberWithCommas(AppStore.marketingLevel());
-      document.getElementById('monthly-lead-volume').innerHTML = dm.monthlyLeadVolume();
-      document.getElementById('marketing-level-up-cost').innerHTML = dm.marketingLevelUpCost();
+      updateElement('marketing-level', Util.numberWithCommas(AppStore.marketingLevel()));
+      updateElement('monthly-lead-volume', dm.monthlyLeadVolume());
+      updateElement('marketing-level-up-cost', dm.marketingLevelUpCost());
 
       var marketingLevelUpButton = document.getElementById('marketing-level-up-button');
-
-      var marketingLevelUpCost = AppStore.marketingLevelUpCost()
-      var cashLowAfterMarketingLevelUp = cashLow - AppStore.marketingLevelUpCost();
-      var cashLowAfterMarketingLevelUpOverRevenue = cashLowAfterMarketingLevelUp / revenue;
-
-      marketingLevelUpButton.disabled = '';
-
-      if (cashLowAfterMarketingLevelUp <= 0) {
-        marketingLevelUpButton.className = 'text-danger';
-      } else if (cashLowAfterMarketingLevelUpOverRevenue < 2) {
-        marketingLevelUpButton.className = 'text-danger';
+      var marketingLevelUpCost = AppStore.marketingLevelUpCost();
+      var cashLowAfterMarketingLevelUp = cashLow - marketingLevelUpCost;
+      var cashLowAfterMarketingLevelUpOverRevenue = revenue === 0 ? 0 : cashLowAfterMarketingLevelUp / revenue;
+      
+      // Apply consistent button styling
+      marketingLevelUpButton.style.padding = '5px 15px';
+      marketingLevelUpButton.style.borderRadius = '3px';
+      marketingLevelUpButton.style.cursor = 'pointer';
+      marketingLevelUpButton.style.fontWeight = 'bold';
+      
+      if (marketingLevelUpCost > bankBalance) {
+        // Can't afford - disabled
+        marketingLevelUpButton.disabled = true;
+        marketingLevelUpButton.style.backgroundColor = '#6c757d';
+        marketingLevelUpButton.style.color = 'white';
+        marketingLevelUpButton.style.border = '1px solid #6c757d';
+        marketingLevelUpButton.style.opacity = '0.65';
+      } else if (cashLowAfterMarketingLevelUp <= 0 || cashLowAfterMarketingLevelUpOverRevenue < 2) {
+        // Can afford but dangerous - red
+        marketingLevelUpButton.disabled = false;
+        marketingLevelUpButton.style.backgroundColor = '#dc3545';
+        marketingLevelUpButton.style.color = 'white';
+        marketingLevelUpButton.style.border = '1px solid #dc3545';
+        marketingLevelUpButton.style.opacity = '1';
       } else if (cashLowAfterMarketingLevelUpOverRevenue < 3) {
-        marketingLevelUpButton.className = 'text-warning';
+        // Can afford but risky - yellow
+        marketingLevelUpButton.disabled = false;
+        marketingLevelUpButton.style.backgroundColor = '#ffc107';
+        marketingLevelUpButton.style.color = 'black';
+        marketingLevelUpButton.style.border = '1px solid #ffc107';
+        marketingLevelUpButton.style.opacity = '1';
       } else {
-        marketingLevelUpButton.className = '';
-      }
-
-      if (AppStore.marketingLevelUpCost() > bankBalance) {
-        marketingLevelUpButton.disabled = 'disabled';
-      } else {
-        marketingLevelUpButton.disabled = '';
+        // Can afford safely - green
+        marketingLevelUpButton.disabled = false;
+        marketingLevelUpButton.style.backgroundColor = '#28a745';
+        marketingLevelUpButton.style.color = 'white';
+        marketingLevelUpButton.style.border = '1px solid #28a745';
+        marketingLevelUpButton.style.opacity = '1';
       }
 
       // Development
-      document.getElementById('space-count').innerHTML = Util.numberWithCommas(AppStore.spaces().length);
-      document.getElementById('space-total-area').innerHTML = dm.totalArea();
+      updateElement('space-count', Util.numberWithCommas(AppStore.spaces().length));
+      updateElement('space-total-area', dm.totalArea());
+      
+      // Style the workstation price buttons
+      var increaseWorkstationPriceButton = document.getElementById('increase-workstation-price');
+      var decreaseWorkstationPriceButton = document.getElementById('decrease-workstation-price');
+      
+      // Apply consistent button styling
+      function styleControlButton(button) {
+        button.style.padding = '2px 10px';
+        button.style.borderRadius = '3px';
+        button.style.cursor = 'pointer';
+        button.style.fontWeight = 'bold';
+        button.style.backgroundColor = '#17a2b8'; // Info blue for control buttons
+        button.style.color = 'white';
+        button.style.border = '1px solid #17a2b8';
+        button.style.margin = '0 2px';
+        button.style.fontSize = '16px';
+      }
+      
+      styleControlButton(increaseWorkstationPriceButton);
+      styleControlButton(decreaseWorkstationPriceButton);
+      
+      // Style the density buttons
+      var increaseDensityButton = document.getElementById('increase-density');
+      var decreaseDensityButton = document.getElementById('decrease-density');
+      
+      styleControlButton(increaseDensityButton);
+      styleControlButton(decreaseDensityButton);
+      
+      // Debug panel removed as requested
   
+      // Always redraw deals to ensure buttons update with bank balance changes
       var dealsEl = document.getElementById('deals');
-  
       var deals = RealEstateMarketStore.deals();
-
-      var newMostRecentDealId;
-
+      
       if (!deals.length) {
         dealsEl.innerHTML = 'Nothing on the market right now.';
       } else {
-        newMostRecentDealId = deals[deals.length - 1].id;
-
-        mostRecentDealId = newMostRecentDealId;
+        mostRecentDealId = deals[deals.length - 1].id;
         dealsEl.innerHTML = '';
 
-        RealEstateMarketStore.deals().forEach(function (deal) {
+        var dealFragment = document.createDocumentFragment();
+        deals.forEach(function (deal) {
           var lease = deal.lease();
+          
+          // Assign ID to identify the deal
+          var dealId = (typeof deal.id === 'function') ? deal.id() : "deal_" + lease.area() + "_" + lease.pricePerSquareFoot();
 
           var el = document.createElement('div');
           el.className = 'border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3';
@@ -141,45 +212,79 @@ var InterfaceRepainter;
   
           var leaseBuyButton = document.createElement('button');
           leaseBuyButton.innerHTML = 'Buy';
+          leaseBuyButton.id = 'buy-button-' + dealId;
+          leaseBuyButton.style.padding = '5px 15px';
+          leaseBuyButton.style.borderRadius = '3px';
+          leaseBuyButton.style.cursor = 'pointer';
+          leaseBuyButton.style.fontWeight = 'bold';
           el.appendChild(leaseBuyButton);
   
-          if (bankBalance >= lease.deposit()) {
+          // Check if we can afford this property
+          var canAfford = bankBalance >= lease.deposit();
+          
+          if (canAfford) {
             let cashLowAfterDeposit = cashLow - lease.deposit();
-            let cashLowAfterDepositOverRevenue = cashLowAfterDeposit / revenue;
-
-            leaseBuyButton.disabled = '';
-
-            if (cashLowAfterDeposit <= 0) {
-              leaseBuyButton.className = 'text-danger';
-            } else if (cashLowAfterDepositOverRevenue < 2) {
-              leaseBuyButton.className = 'text-danger';
+            let cashLowAfterDepositOverRevenue = revenue === 0 ? 0 : cashLowAfterDeposit / revenue;
+            
+            leaseBuyButton.disabled = false;
+            
+            if (cashLowAfterDeposit <= 0 || cashLowAfterDepositOverRevenue < 2) {
+              leaseBuyButton.style.backgroundColor = '#dc3545';
+              leaseBuyButton.style.color = 'white';
+              leaseBuyButton.style.border = '1px solid #dc3545';
             } else if (cashLowAfterDepositOverRevenue < 3) {
-              leaseBuyButton.className = 'text-warning';
+              leaseBuyButton.style.backgroundColor = '#ffc107';
+              leaseBuyButton.style.color = 'black';
+              leaseBuyButton.style.border = '1px solid #ffc107';
             } else {
-              leaseBuyButton.className = '';
+              leaseBuyButton.style.backgroundColor = '#28a745';
+              leaseBuyButton.style.color = 'white';
+              leaseBuyButton.style.border = '1px solid #28a745';
             }
-  
-            leaseBuyButton.addEventListener('mousedown', function () {
+          } else {
+            leaseBuyButton.disabled = true;
+            leaseBuyButton.style.backgroundColor = '#6c757d';
+            leaseBuyButton.style.color = 'white';
+            leaseBuyButton.style.border = '1px solid #6c757d';
+            leaseBuyButton.style.opacity = '0.65';
+          }
+          
+          dealFragment.appendChild(el);
+        });
+        
+        dealsEl.appendChild(dealFragment);
+        
+        // Add event listeners after all elements are in DOM
+        deals.forEach(function (deal) {
+          var lease = deal.lease();
+          var dealId = (typeof deal.id === 'function') ? deal.id() : "deal_" + lease.area() + "_" + lease.pricePerSquareFoot();
+          var buttonId = 'buy-button-' + dealId;
+          var button = document.getElementById(buttonId);
+          
+          if (button && !button.disabled) {
+            button.addEventListener('click', function() {
+              console.log("Purchasing property: " + lease.decorate().area());
               LeasePurchaser.call(deal);
             });
-          } else {
-            leaseBuyButton.disabled = 'disabled';
           }
-  
-          dealsEl.appendChild(el);
         });
       }
 
+      // ALWAYS redraw projects - disable caching for now
       var projectsEl = document.getElementById('projects');
-      projectsEl.innerHTML = '';
-
       var projects = ProjectStore.projects();
-
+      
       if (!projects.length) {
         projectsEl.innerHTML = 'No projects right now.';
       } else {
+        projectsEl.innerHTML = '';
+        
         projects.forEach(function (project) {
-          p = project.decorate();
+          var p = project.decorate();
+          var conditionsMet = project.conditionsMet();
+          
+          // Log every project condition check
+          console.log("Project: " + p.title() + " - Conditions met: " + conditionsMet);
 
           var el = document.createElement('div');
           el.className = 'border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3';
@@ -199,21 +304,65 @@ var InterfaceRepainter;
 
           var goButton = document.createElement('button');
           goButton.innerHTML = 'Go';
-          el.appendChild(goButton);
-
-          if (project.conditionsMet()) {
-            goButton.disabled = '';
-
-            goButton.addEventListener('mousedown', function () {
-              ProjectRunner.call(project);
-            });
+          goButton.id = 'project-button-' + project.id();
+          
+          // Apply consistent styling with lease buttons
+          goButton.style.padding = '5px 15px';
+          goButton.style.borderRadius = '3px';
+          goButton.style.cursor = 'pointer';
+          goButton.style.fontWeight = 'bold';
+          
+          // Set button enabled state
+          if (conditionsMet) {
+            goButton.disabled = false;
+            goButton.style.backgroundColor = '#28a745';
+            goButton.style.color = 'white';
+            goButton.style.border = '1px solid #28a745';
           } else {
-            goButton.disabled = 'disabled';
+            goButton.disabled = true;
+            goButton.style.backgroundColor = '#6c757d';
+            goButton.style.color = 'white';
+            goButton.style.border = '1px solid #6c757d';
+            goButton.style.opacity = '0.65';
           }
-
+          
+          el.appendChild(goButton);
           projectsEl.appendChild(el);
+        });
+        
+        // Add robust event listeners after all elements are in the DOM
+        projects.forEach(function (project) {
+          var buttonId = 'project-button-' + project.id();
+          var button = document.getElementById(buttonId);
+          
+          if (button && !button.disabled && project.conditionsMet()) {
+            // Remove any existing listeners to prevent duplicates
+            var newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add a single, reliable click handler
+            newButton.onclick = function(e) {
+              // Prevent default and stop propagation for reliability
+              e.preventDefault();
+              e.stopPropagation();
+              
+              console.log("Running project: " + project.title());
+              
+              // Disable the button immediately to prevent double-clicks
+              newButton.disabled = true;
+              newButton.style.backgroundColor = '#6c757d';
+              newButton.style.opacity = '0.65';
+              
+              // Execute the project
+              setTimeout(function() {
+                ProjectRunner.call(project);
+              }, 50);
+              
+              return false;
+            };
+          }
         });
       }
     }
-  };    
+  };
 })();

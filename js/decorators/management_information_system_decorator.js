@@ -44,9 +44,15 @@ var ManagementInformationSystemDecorator;
     };
 
     this.monthlyChurnRate = function () {
-      return Util.numberWithCommas(
-        parseInt(mis.monthlyChurnRate() * 100) + '%'
-      );
+      // Show monthly churn rate as a percentage
+      var monthlyRate = mis.monthlyChurnRate();
+      
+      // Cap at 100% for display purposes
+      if (monthlyRate > 1) {
+        monthlyRate = 1;
+      }
+      
+      return parseInt(monthlyRate * 100) + '%';
     };
 
     this.monthlyLeadVolume = function () {

@@ -15,7 +15,10 @@ var ProjectStore;
       description: 'Injection of £5m for growth.',
       conditions: Util.numberWithCommas(seriesAMemberCount) + ' members',
       conditionsMet: function () {
-        return AppStore.managementInformationSystem().memberUserCount() > seriesAMemberCount;
+        var currentMembers = AppStore.managementInformationSystem().memberUserCount();
+        var conditionMet = currentMembers >= seriesAMemberCount;
+        console.log("Series A condition check: " + currentMembers + " >= " + seriesAMemberCount + " = " + conditionMet);
+        return conditionMet;
       },
       callback: function () {
         AppStore.bankAccount().deposit(5000000);
@@ -29,7 +32,7 @@ var ProjectStore;
       conditionsMet: function () {
         return (
           seriesAComplete &&
-          AppStore.managementInformationSystem().memberUserCount() > seriesBMemberCount
+          AppStore.managementInformationSystem().memberUserCount() >= seriesBMemberCount
         );
       },
       callback: function () {
@@ -44,7 +47,7 @@ var ProjectStore;
       conditionsMet: function () {
         return (
           seriesBComplete &&
-          AppStore.managementInformationSystem().memberUserCount() > seriesCMemberCount
+          AppStore.managementInformationSystem().memberUserCount() >= seriesCMemberCount
         );
       },
       callback: function () {
@@ -58,8 +61,8 @@ var ProjectStore;
       conditions: Util.numberWithCommas(seriesDMemberCount) + ' members',
       conditionsMet: function () {
         return (
-          seriesBComplete &&
-          AppStore.managementInformationSystem().memberUserCount() > seriesDMemberCount
+          seriesCComplete &&
+          AppStore.managementInformationSystem().memberUserCount() >= seriesDMemberCount
         );
       },
       callback: function () {

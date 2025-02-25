@@ -47,8 +47,14 @@ var RealEstateMarketStore;
       var minMonthsDeposit = 3;
       var maxMonthsDeposit = 12;
 
+      // Make sure there are always some properties available (1-3)
       if (!deals.length || deals.length < 3) {
-        if (Math.random() > 0.99) {
+        // Higher chance of new properties appearing when few are available
+        var newPropertyChance = deals.length === 0 ? 0.5 : (deals.length === 1 ? 0.2 : 0.1);
+        
+        if (Math.random() < newPropertyChance) {
+          console.log("Generating new property on the market");
+          
           newDeal = new LeaseDeal({
             lease: new Lease({
               pricePerSquareFoot: generatePricePerSquareFoot(),
@@ -63,8 +69,12 @@ var RealEstateMarketStore;
           deals.push(newDeal);
         }
       } else {
-        deals.forEach(function (deal) {
-          if (Math.random() > 0.99) {
+        // Remove deals occasionally if we have more than needed
+        deals.forEach(function (deal, index) {
+          // Remove older deals with higher probability
+          var ageBasedRemovalChance = 0.01 * (deals.length - index);
+          if (Math.random() < ageBasedRemovalChance) {
+            console.log("Taking property off the market");
             RealEstateMarketStore.takeDealOffMarket(deal);
           }
         });

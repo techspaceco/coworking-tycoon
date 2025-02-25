@@ -5,6 +5,7 @@ function Project(options) {
   var defaultCurrency = 'GBP';
   var description = options.description;
   var title = options.title;
+  var id = "project_" + title.replace(/\s+/g, "_").toLowerCase(); // Create a unique ID
 
   this.conditions = function () {
     return conditions;
@@ -32,5 +33,10 @@ function Project(options) {
 
   this.title = function () {
     return title;
+  };
+  
+  // Add ID getter
+  this.id = function() {
+    return id;
   };
 }
