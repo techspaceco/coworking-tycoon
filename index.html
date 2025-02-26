@@ -176,6 +176,19 @@
               </div>
             </div>
           </div>
+          
+          <!-- Event history panel -->
+          <div class='card mb-3'>
+            <div class='card-body'>
+              <h4 class='card-title'><i class="bi bi-calendar-event me-2"></i>Recent Events</h4>
+              <div class="event-history-card" id="event-history-content">
+                <div class="text-center py-3 text-muted">No events yet</div>
+              </div>
+              <div class="mt-2 text-center small">
+                <span class="text-muted">Tip: Game events occur randomly during gameplay</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class='col'>
@@ -590,6 +603,61 @@
           console.error("Error in staff project check interval:", err);
         }
       }, 500); // Check every 500ms
+    </script>
+    
+    <script>
+      // Event history functionality for refreshing the events panel
+      document.addEventListener('DOMContentLoaded', function() {
+        // Function to update event history
+        window.updateEventHistory = function() {
+          var historyContent = document.getElementById('event-history-content');
+          if (!historyContent) return;
+          
+          if (typeof EventStore !== 'undefined' && typeof EventStore.getEventHistory === 'function') {
+            var events = EventStore.getEventHistory();
+            
+            if (events.length === 0) {
+              historyContent.innerHTML = '<div class="text-center py-3 text-muted">No events yet</div>';
+              return;
+            }
+            
+            // Sort events by date (most recent first)
+            events.sort(function(a, b) {
+              return new Date(b.date) - new Date(a.date);
+            });
+            
+            // Format event list
+            var html = '';
+            events.forEach(function(event) {
+              var date = new Date(event.date);
+              var dateStr = date.toLocaleDateString(); // Only show date, not time
+              
+              var categoryClass = '';
+              if (event.category === 'positive') {
+                categoryClass = 'event-positive';
+              } else if (event.category === 'negative') {
+                categoryClass = 'event-negative';
+              } else {
+                categoryClass = 'event-neutral';
+              }
+              
+              html += '<div class="event-history-item">';
+              html += '<div class="small text-muted">' + dateStr + '</div>';
+              html += '<div class="' + categoryClass + '">' + event.title + '</div>';
+              html += '</div>';
+            });
+            
+            historyContent.innerHTML = html;
+          }
+        };
+        
+        // Set up automatic refresh every 5 seconds
+        setInterval(function() {
+          if (typeof window.updateEventHistory === 'function') {
+            window.updateEventHistory();
+          }
+        }, 5000);
+      });
     </script>
 
     <footer class='bd-footer'>

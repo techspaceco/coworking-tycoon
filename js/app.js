@@ -14,6 +14,13 @@ var needsUiUpdate = true;
   // Global toast configuration
   window.toastDuration = 8000; // 8 seconds duration (was typically 5s default)
   
+  // Auto-unlock events after an extremely long delay to ensure events are very rare
+  setInterval(function() {
+    if (typeof EventStore !== 'undefined' && EventStore.unlockEvents) {
+      EventStore.unlockEvents();
+    }
+  }, 300000); // Unlock every 5 minutes (extremely reduced frequency)
+  
   // Function to show and handle the welcome overlay
   function showWelcomeOverlay() {
     // Get overlay element
@@ -55,7 +62,14 @@ var needsUiUpdate = true;
       
       if (toast && toastTitle && toastDesc) {
         toastTitle.textContent = title;
-        toastDesc.textContent = message;
+        
+        // Check if message contains HTML (events use span with class)
+        if (typeof message === 'string' && message.indexOf('<span') === 0) {
+          toastDesc.innerHTML = message; // Use innerHTML for HTML content
+        } else {
+          toastDesc.textContent = message; // Use textContent for plain text
+        }
+        
         toastIcon.className = iconClass || "bi bi-info-circle-fill me-2";
         
         // Create toast with longer duration
@@ -64,6 +78,18 @@ var needsUiUpdate = true;
           delay: window.toastDuration 
         });
         bsToast.show();
+        
+        // Unlock events after showing a toast
+        if (typeof EventStore !== 'undefined') {
+          setTimeout(function() {
+            EventStore.unlockEvents();
+            
+            // Also update the event history panel if the function exists
+            if (typeof window.updateEventHistory === 'function') {
+              window.updateEventHistory();
+            }
+          }, 500); // Small delay to prevent event spam
+        }
         
         return bsToast; // Return toast instance in case caller needs it
       }

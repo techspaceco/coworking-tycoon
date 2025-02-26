@@ -4,12 +4,13 @@ var EventStore;
   // Internal state
   var events = []; // Event definitions
   var activeEvents = []; // Currently active events
-  var eventHistory = []; // Record of past events
+  var eventHistory = []; // Record of past events (limited to 10)
+  var maxEventHistory = 10; // Maximum number of events to keep in history
   var lastEventDay = 0; // To prevent too frequent events
-  var dailyEventChance = 0.03; // 3% chance each day (reduced from 15%)
-  var monthlyEventChance = 0.15; // 15% chance each month (reduced from 30%)
-  var quarterlyEventChance = 0.3; // 30% chance each quarter (reduced from 50%)
-  var minDaysBetweenEvents = 14; // Minimum days between random events (increased from 3)
+  var dailyEventChance = 0.004; // 0.4% chance each day (extremely reduced)
+  var monthlyEventChance = 0.05; // 5% chance each month (extremely reduced) 
+  var quarterlyEventChance = 0.15; // 15% chance each quarter (extremely reduced)
+  var minDaysBetweenEvents = 28; // Minimum 4 weeks between random events (extremely increased)
   var eventLock = false; // Flag to ensure only one event occurs between user actions
   
   // Event definitions
@@ -103,7 +104,7 @@ var EventStore;
       {
         id: 'investor_interest',
         title: 'Investor Interest',
-        description: 'A potential investor has shown interest in your coworking brand! Cash injection of $10,000.',
+        description: 'A potential investor has shown interest in your coworking brand! Cash injection of £10,000.',
         minProgressionStage: 3, // EXPANDING
         duration: 0, // instant effect
         probability: 0.2,
@@ -147,7 +148,7 @@ var EventStore;
       {
         id: 'building_issue',
         title: 'Building Maintenance',
-        description: 'Unexpected building repairs needed. One-time cost of $5,000.',
+        description: 'Unexpected building repairs needed. One-time cost of £5,000.',
         minProgressionStage: 2, // GROWING
         duration: 0, // instant effect
         probability: 0.4,
@@ -303,29 +304,51 @@ var EventStore;
   
   // Helper function to check if an event can trigger based on progression stage
   function canEventTrigger(event) {
-    if (typeof ProgressionStore === 'undefined') return false;
+    if (typeof ProgressionStore === 'undefined') {
+      return true; // Allow events even if ProgressionStore not available
+    }
     
     var currentStage = ProgressionStore.getStage();
+    
     var stageLevels = {
       0: 0,  // INTRO
-      1: 1,  // FIRST_SPACE
+      'INTRO': 0,
+      1: 1,  // FIRST_SPACE  
+      'FIRST_SPACE': 1,
       2: 2,  // GROWING
+      'GROWING': 2,
       3: 3,  // EXPANDING
+      'EXPANDING': 3,
       4: 4,  // ESTABLISHED
+      'ESTABLISHED': 4,
       5: 5,  // SCALING
-      6: 6   // ENTERPRISE
+      'SCALING': 5,
+      6: 6,  // ENTERPRISE
+      'ENTERPRISE': 6
     };
     
     var eventMinStage = stageLevels[event.minProgressionStage] || 0;
     var currentStageLevel = stageLevels[currentStage] || 0;
     
-    return currentStageLevel >= eventMinStage;
+    // For demo purposes, make all events available sooner
+    // This makes the game more interesting with events happening earlier
+    return currentStageLevel >= Math.max(0, eventMinStage - 1);
   }
   
   // Helper to sample a random event from the pools
   function sampleEvent(category) {
-    var eligibleEvents = eventDefinitions[category].filter(canEventTrigger);
-    if (!eligibleEvents.length) return null;
+    var allEventsInCategory = eventDefinitions[category];
+    
+    var eligibleEvents = allEventsInCategory.filter(canEventTrigger);
+    
+    if (!eligibleEvents.length) {
+      // For early game, return any event from this category
+      // regardless of progression level to make the game more interesting
+      if (allEventsInCategory.length > 0) {
+        return allEventsInCategory[0];
+      }
+      return null;
+    }
     
     // Weight by probability
     var totalWeight = eligibleEvents.reduce(function(sum, event) {
@@ -372,7 +395,9 @@ var EventStore;
   // Helper to trigger an event
   function triggerEvent(eventCategory) {
     var event = sampleEvent(eventCategory);
-    if (!event) return false;
+    if (!event) {
+      return false;
+    }
     
     // Check if this event is already active
     var isAlreadyActive = activeEvents.some(function(activeEvent) {
@@ -386,7 +411,6 @@ var EventStore;
     // Try to apply the event effect
     if (event.effect.call(event)) {
       // Event successfully applied
-      
       var now = new Date();
       var endDate = new Date();
       endDate.setDate(now.getDate() + event.duration);
@@ -400,7 +424,7 @@ var EventStore;
         });
       }
       
-      // Record in history
+      // Record in history (with limit)
       eventHistory.push({
         id: event.id,
         title: event.title,
@@ -408,8 +432,20 @@ var EventStore;
         date: now
       });
       
+      // Limit the number of events in history
+      if (eventHistory.length > maxEventHistory) {
+        eventHistory = eventHistory.slice(-maxEventHistory);
+      }
+      
       // Update last event day
       lastEventDay = AppStore.date().getTime();
+      
+      // Update event history panel if available
+      if (typeof window.updateEventHistory === 'function') {
+        setTimeout(function() {
+          window.updateEventHistory();
+        }, 100);
+      }
       
       return true;
     }
@@ -532,26 +568,38 @@ var EventStore;
     
     // Force trigger specific event (for debugging or scripted events)
     triggerSpecificEvent: function(eventId) {
+      console.log("Attempting to trigger specific event:", eventId);
+      
       // If event lock is active, don't generate any new events
       if (eventLock) {
+        console.log("Event lock is active, can't trigger event");
         return false;
       }
       
       // Find the event in any category
       var foundEvent = null;
+      var foundCategory = null;
       
       Object.keys(eventDefinitions).forEach(function(category) {
         eventDefinitions[category].forEach(function(event) {
           if (event.id === eventId) {
             foundEvent = event;
+            foundCategory = category;
           }
         });
       });
       
-      if (!foundEvent) return false;
+      if (!foundEvent) {
+        console.log("Event not found:", eventId);
+        return false;
+      }
+      
+      console.log("Found event:", foundEvent.id, "in category:", foundCategory);
       
       // Apply the event effect
       if (foundEvent.effect.call(foundEvent)) {
+        console.log("Event effect applied successfully");
+        
         var now = new Date();
         var endDate = new Date();
         endDate.setDate(now.getDate() + foundEvent.duration);
@@ -563,21 +611,36 @@ var EventStore;
             startDate: now,
             endDate: endDate
           });
+          console.log("Added to active events with duration:", foundEvent.duration);
         }
         
-        // Record in history
+        // Record in history (with limit)
         eventHistory.push({
           id: foundEvent.id,
           title: foundEvent.title,
+          category: foundCategory,
           date: now
         });
+        
+        // Limit the number of events in history
+        if (eventHistory.length > maxEventHistory) {
+          eventHistory = eventHistory.slice(-maxEventHistory);
+        }
+        
+        console.log("Added to event history, total events:", eventHistory.length);
         
         // Set event lock to prevent further events
         eventLock = true;
         
+        // Update the UI
+        if (typeof window.updateEventHistory === 'function') {
+          window.updateEventHistory();
+        }
+        
         return true;
       }
       
+      console.log("Failed to apply event effect");
       return false;
     },
     
