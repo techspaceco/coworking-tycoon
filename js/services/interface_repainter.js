@@ -6,6 +6,7 @@ var InterfaceRepainter;
   var cachedProjectIds = [];
   var occupancyGauge;
   var churnGauge;
+  var financeChart;
   
   // Helper to update text content and class only when changed
   function updateElement(id, content, className) {
@@ -18,7 +19,7 @@ var InterfaceRepainter;
     }
   }
   
-  // Initialize gauges
+  // Initialize gauges and charts
   function initGauges() {
     if (!occupancyGauge) {
       var occupancyCanvas = document.getElementById('occupancy-gauge');
@@ -56,6 +57,32 @@ var InterfaceRepainter;
         });
       }
     }
+    
+    if (!financeChart) {
+      var financeCanvas = document.getElementById('finance-chart');
+      if (financeCanvas) {
+        financeChart = new SimpleLineChart({
+          canvas: financeCanvas,
+          datasets: [
+            {
+              label: 'Revenue',
+              data: [],
+              lineColor: '#28a745', // Green for revenue
+              fillColor: 'rgba(40, 167, 69, 0.1)'
+            },
+            {
+              label: 'Balance',
+              data: [],
+              lineColor: '#007bff', // Blue for balance
+              fillColor: 'rgba(0, 123, 255, 0.1)'
+            }
+          ],
+          title: 'Financial History',
+          yAxisLabel: 'Amount',
+          legend: true
+        });
+      }
+    }
   }
 
   InterfaceRepainter = {
@@ -88,6 +115,20 @@ var InterfaceRepainter;
       updateElement('monthly-overheads', dm.monthlyOverheads());
       updateElement('quarterly-rent-bill', dm.quarterlyRentBill());
       updateElement('gross-margin', dm.grossMargin());
+      
+      // Update finance chart with both revenue and balance
+      if (financeChart) {
+        var revenueHistory = mis.getFinancialHistory('revenue');
+        var balanceHistory = mis.getFinancialHistory('bankBalance');
+        
+        if (revenueHistory.length > 0) {
+          financeChart.updateData(revenueHistory, 0);
+        }
+        
+        if (balanceHistory.length > 0) {
+          financeChart.updateData(balanceHistory, 1);
+        }
+      }
       updateElement('forecast-cash-low', dm.foreCastCashLow(), cashLowClass);
       
       // Product
@@ -271,7 +312,7 @@ var InterfaceRepainter;
           el.appendChild(depositEl);
   
           var leaseBuyButton = document.createElement('button');
-          leaseBuyButton.innerHTML = 'Buy';
+          leaseBuyButton.innerHTML = 'Lease';
           leaseBuyButton.id = 'buy-button-' + dealId;
           leaseBuyButton.style.padding = '5px 15px';
           leaseBuyButton.style.borderRadius = '3px';
@@ -322,6 +363,10 @@ var InterfaceRepainter;
           var button = document.getElementById(buttonId);
           
           if (button && !button.disabled) {
+            // Capture lease data in closure to avoid reference issues
+            var leaseArea = lease.decorate().area();
+            var dealObj = deal;
+            
             // Function to execute when button is activated
             function purchaseLease(e) {
               // Prevent default and stop propagation for reliability
@@ -330,30 +375,41 @@ var InterfaceRepainter;
                 e.stopPropagation();
               }
               
-              console.log("Purchasing property: " + lease.decorate().area());
-              LeasePurchaser.call(deal);
+              console.log("Purchasing property: " + leaseArea);
+              LeasePurchaser.call(dealObj);
               
               return false;
             }
             
-            // Remove any existing listeners to prevent duplicates
-            var newButton = button.cloneNode(true);
+            // Remove existing event listeners by cloning
+            var newButton = button.cloneNode(false); // Clone without children
+            while (button.firstChild) {
+              newButton.appendChild(button.firstChild);
+            }
             button.parentNode.replaceChild(newButton, button);
             
-            // Add click handler for desktop
+            // Direct event assignment for immediate effect
             newButton.onclick = purchaseLease;
             
-            // Add touch handlers for mobile
-            newButton.addEventListener('touchstart', function(e) {
-              // Add active state styling
+            // Mouse event listeners for desktop
+            newButton.addEventListener('mousedown', function() {
               newButton.style.opacity = '0.8';
-            }, false);
+            });
             
+            newButton.addEventListener('mouseup', function() {
+              newButton.style.opacity = '1.0';
+            });
+            
+            // Touch event listeners for mobile with passive: false for compatibility
+            newButton.addEventListener('touchstart', function(e) {
+              newButton.style.opacity = '0.8';
+            }, {passive: false});
+            
+            // Use touchend for mobile 
             newButton.addEventListener('touchend', function(e) {
-              // Remove active state styling
-              newButton.style.opacity = '1';
+              newButton.style.opacity = '1.0';
               purchaseLease(e);
-            }, false);
+            }, {passive: false});
           }
         });
       }
@@ -424,11 +480,10 @@ var InterfaceRepainter;
           var button = document.getElementById(buttonId);
           
           if (button && !button.disabled && project.conditionsMet()) {
-            // Remove any existing listeners to prevent duplicates
-            var newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
+            // Create project execution function
+            var projectTitle = project.title(); // Capture project title in closure
+            var projectObj = project; // Capture project object in closure
             
-            // Function to execute when button is activated
             function executeProject(e) {
               // Prevent default and stop propagation for reliability
               if (e) {
@@ -436,35 +491,48 @@ var InterfaceRepainter;
                 e.stopPropagation();
               }
               
-              console.log("Running project: " + project.title());
+              console.log("Running project: " + projectTitle);
               
               // Disable the button immediately to prevent double-clicks
-              newButton.disabled = true;
-              newButton.style.backgroundColor = '#6c757d';
-              newButton.style.opacity = '0.65';
+              button.disabled = true;
+              button.style.backgroundColor = '#6c757d';
+              button.style.opacity = '0.65';
               
-              // Execute the project
-              setTimeout(function() {
-                ProjectRunner.call(project);
-              }, 50);
+              // Execute the project immediately
+              ProjectRunner.call(projectObj);
               
               return false;
             }
             
-            // Add click handler for desktop
+            // Remove existing event listeners by cloning
+            var newButton = button.cloneNode(false); // Clone without children
+            while (button.firstChild) {
+              newButton.appendChild(button.firstChild);
+            }
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Direct event assignment for reliability
             newButton.onclick = executeProject;
             
-            // Add touch handlers for mobile
-            newButton.addEventListener('touchstart', function(e) {
-              // Add active state styling
+            // Mouse event listeners for desktop
+            newButton.addEventListener('mousedown', function() {
               newButton.style.opacity = '0.8';
-            }, false);
+            });
             
+            newButton.addEventListener('mouseup', function() {
+              newButton.style.opacity = '1.0';
+            });
+            
+            // Touch event listeners for mobile
+            newButton.addEventListener('touchstart', function(e) {
+              newButton.style.opacity = '0.8';
+            }, {passive: false});
+            
+            // Use both touchend and click for maximum compatibility
             newButton.addEventListener('touchend', function(e) {
-              // Remove active state styling
-              newButton.style.opacity = '1';
+              newButton.style.opacity = '1.0';
               executeProject(e);
-            }, false);
+            }, {passive: false});
           }
         });
       }

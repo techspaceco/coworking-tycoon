@@ -7,14 +7,99 @@
   font-size: 12px;
 }
 
+.gauge-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
 .gauge-container {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  flex: 1;
 }
 
 .gauge-container p {
   margin-top: 5px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.finance-chart-container {
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 5px;
+  background-color: rgba(248, 249, 250, 0.5);
+  border-radius: 3px;
+}
+
+.finance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px 10px;
+}
+
+.finance-item {
+  font-size: 90%;
+  padding: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-control-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.control-label {
+  flex: 1;
+  font-weight: 500;
+  font-size: 90%;
+}
+
+.control-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.info-grid {
+  display: flex;
+  justify-content: space-between;
+  font-size: 90%;
+}
+
+.info-item {
+  padding: 5px;
+}
+
+.level-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.level-button {
+  flex-shrink: 0;
+}
+
+.level-cost {
+  font-size: 90%;
+  color: #666;
+}
+
+.level-info {
+  font-size: 90%;
+  margin-bottom: 5px;
 }
 
 /* Improve buttons for touch devices */
@@ -38,6 +123,20 @@ button {
   margin: 4px;
 }
 
+/* Card styling */
+.card {
+  margin-bottom: 0.75rem;
+}
+
+.card-body {
+  padding: 0.75rem;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
 /* Make sure container allows for larger button size */
 @media (max-width: 768px) {
   .container-fluid {
@@ -46,7 +145,12 @@ button {
   }
   
   .card-body {
-    padding: 15px 10px;
+    padding: 8px 6px;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
   }
   
   button {

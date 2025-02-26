@@ -74,6 +74,10 @@ var needsUiUpdate = true;
   function handleMonthChange() {
     MonthlyLicenceFeeCollector.call();
     MonthlyBillPayer.call();
+    
+    // Record financial data for charting at each month
+    AppStore.managementInformationSystem().recordFinancialData();
+    
     needsUiUpdate = true;
   }
 

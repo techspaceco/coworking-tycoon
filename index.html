@@ -16,6 +16,7 @@
     <script src='./js/lib/logger.js'></script>
     <script src='./js/lib/util.js'></script>
     <script src='./js/lib/charts/gauge.js'></script>
+    <script src='./js/lib/charts/line-chart.js'></script>
     <script src='./js/models/bank_account.js'></script>
     <script src='./js/models/lead.js'></script>
     <script src='./js/models/lease.js'></script>
@@ -71,36 +72,36 @@
             <div class='card-body'>
               <h4 class='card-title'>Finance</h4>
 
-              <p>
-                Bank balance:
-                <span id='balance'></span>
-              </p>
+              <div class="finance-chart-container">
+                <canvas id="finance-chart" width="280" height="160"></canvas>
+              </div>
 
-              <p>
-                Forecast cash low:
-                <span id='forecast-cash-low'></span>
-              </p>
-
-              <p>
-                Revenue:
-                <span id='monthly-revenue'></span>
-              </p>
-
-              <p>
-                Overheads:
-                <span id='monthly-overheads'></span>
-              </p>
-
-              <p>
-                Rent:
-                <span id='quarterly-rent-bill'></span>
-                per quarter
-              </p>
-
-              <p>
-                Gross margin:
-                <span id='gross-margin'></span>
-              </p>
+              <div class="finance-grid">
+                <div class="finance-item">
+                  <strong>Balance:</strong>
+                  <span id='balance'></span>
+                </div>
+                <div class="finance-item">
+                  <strong>Cash Low:</strong>
+                  <span id='forecast-cash-low'></span>
+                </div>
+                <div class="finance-item">
+                  <strong>Revenue:</strong>
+                  <span id='monthly-revenue'></span>
+                </div>
+                <div class="finance-item">
+                  <strong>Overheads:</strong>
+                  <span id='monthly-overheads'></span>
+                </div>
+                <div class="finance-item">
+                  <strong>Rent:</strong>
+                  <span id='quarterly-rent-bill'></span>
+                </div>
+                <div class="finance-item">
+                  <strong>Margin:</strong>
+                  <span id='gross-margin'></span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -108,41 +109,42 @@
             <div class='card-body'>
               <h4 class='card-title'>Product</h4>
 
-              <p>
-                Workstation price:
-              </p>
-
-              <p>
-                <button id='decrease-workstation-price'>-</button>
-                <button id='increase-workstation-price'>+</button>
-                <span id='workstation-price'></span>
-              </p>
-
-              <p>
-                Density:
-              </p>
-
-              <p>
-                <button id='decrease-density'>-</button>
-                <button id='increase-density'>+</button>
-                <span id='density'></span>
-              </p>
+              <div class="product-controls">
+                <div class="product-control-item">
+                  <div class="control-label">Workstation price:</div>
+                  <div class="control-buttons">
+                    <button id='decrease-workstation-price'>-</button>
+                    <button id='increase-workstation-price'>+</button>
+                    <span id='workstation-price'></span>
+                  </div>
+                </div>
+                
+                <div class="product-control-item">
+                  <div class="control-label">Density:</div>
+                  <div class="control-buttons">
+                    <button id='decrease-density'>-</button>
+                    <button id='increase-density'>+</button>
+                    <span id='density'></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class='card mb-3'>
             <div class='card-body'>
               <h4 class='card-title'>Development</h4>
-
-              <p>
-                Number of spaces:
-                <span id='space-count'></span>
-              </p>
-
-              <p>
-                Total area:
-                <span id='space-total-area'></span>
-              </p>
+              
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Spaces:</strong>
+                  <span id='space-count'></span>
+                </div>
+                <div class="info-item">
+                  <strong>Area:</strong>
+                  <span id='space-total-area'></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -152,14 +154,16 @@
             <div class='card-body'>
               <h4 class='card-title'>Community</h4>
 
-              <div class="gauge-container">
-                <canvas id="occupancy-gauge" width="150" height="120"></canvas>
-                <span id='occupancy' style="display: none;"></span>
-              </div>
+              <div class="gauge-row">
+                <div class="gauge-container">
+                  <canvas id="occupancy-gauge" width="120" height="100"></canvas>
+                  <span id='occupancy' style="display: none;"></span>
+                </div>
 
-              <div class="gauge-container">
-                <canvas id="churn-gauge" width="150" height="120"></canvas>
-                <span id='monthly-churn-rate' style="display: none;"></span>
+                <div class="gauge-container">
+                  <canvas id="churn-gauge" width="120" height="100"></canvas>
+                  <span id='monthly-churn-rate' style="display: none;"></span>
+                </div>
               </div>
             </div>
           </div>
@@ -174,15 +178,17 @@
                 </small>
               </h4>
 
-              <p>
-                <button id='sales-level-up-button'>Level up</button>
-                <span id='sales-level-up-cost'></span>
-              </p>
-
-              <p>
-                Sales volume:
-                <span id='monthly-sales-volume'></span>
-              </p>
+              <div class="level-controls">
+                <div class="level-button">
+                  <button id='sales-level-up-button'>Level up</button>
+                </div>
+                <div class="level-cost">
+                  <span id='sales-level-up-cost'></span>
+                </div>
+              </div>
+              <div class="level-info">
+                Volume: <span id='monthly-sales-volume'></span>
+              </div>
             </div>
           </div>
 
@@ -195,15 +201,17 @@
                 </small>
               </h4>
 
-              <p>
-                <button id='marketing-level-up-button'>Level up</button>
-                <span id='marketing-level-up-cost'></span>
-              </p>
-
-              <p>
-                Lead volume:
-                <span id='monthly-lead-volume'></span>
-              </p>
+              <div class="level-controls">
+                <div class="level-button">
+                  <button id='marketing-level-up-button'>Level up</button>
+                </div>
+                <div class="level-cost">
+                  <span id='marketing-level-up-cost'></span>
+                </div>
+              </div>
+              <div class="level-info">
+                Leads: <span id='monthly-lead-volume'></span>
+              </div>
             </div>
           </div>
         </div>
@@ -227,7 +235,7 @@
             <a
               href='https://www.techspace.co'
               target='_blank'
-            >Techspace Property Group Ltd</a>.
+            >Techspace Group Ltd</a>.
             Code licensed
             <a
               rel='license noopener'

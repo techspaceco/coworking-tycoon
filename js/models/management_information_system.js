@@ -18,6 +18,13 @@ var ManagementInformationSystem;
     var quarterlyRentBill = 0;
     var totalArea = 0;
     
+    // Store financial history - limited to last 12 data points
+    var financialHistory = {
+      revenue: [],
+      bankBalance: [],
+      maxItems: 12
+    };
+    
     // Cache for expensive calculations
     var cache = {
       memberUserCount: null,
@@ -369,6 +376,45 @@ var ManagementInformationSystem;
 
     this.workstationPrice = function () {
       return AppStore.workstationPrice();
-    }
+    };
+    
+    // Record financial data for historical tracking
+    this.recordFinancialData = function() {
+      var currentDate = new Date(AppStore.date().getTime());
+      var formattedDate = currentDate.getDate() + '/' + (currentDate.getMonth() + 1);
+      
+      // Record revenue data
+      financialHistory.revenue.push({
+        date: currentDate,
+        label: formattedDate,
+        value: this.monthlyRevenue()
+      });
+      
+      // Record bank balance
+      financialHistory.bankBalance.push({
+        date: currentDate,
+        label: formattedDate,
+        value: AppStore.bankAccount().balance()
+      });
+      
+      // Keep only the last N items
+      if (financialHistory.revenue.length > financialHistory.maxItems) {
+        financialHistory.revenue.shift();
+      }
+      
+      if (financialHistory.bankBalance.length > financialHistory.maxItems) {
+        financialHistory.bankBalance.shift();
+      }
+    };
+    
+    // Get financial history for charting
+    this.getFinancialHistory = function(type) {
+      if (type === 'revenue') {
+        return financialHistory.revenue;
+      } else if (type === 'bankBalance') {
+        return financialHistory.bankBalance;
+      }
+      return [];
+    };
   };
 })();
