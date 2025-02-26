@@ -47,6 +47,25 @@
   text-overflow: ellipsis;
 }
 
+/* Cash Low Forecast Meter */
+.cash-forecast-meter {
+  position: relative;
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  margin-top: 3px;
+  overflow: hidden;
+}
+
+.cash-forecast-meter-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s, background-color 0.3s;
+}
+
 .product-controls {
   display: flex;
   flex-direction: column;

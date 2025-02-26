@@ -78,7 +78,7 @@ var InterfaceRepainter;
             }
           ],
           title: 'Financial History',
-          yAxisLabel: 'Amount',
+          yAxisLabel: 'Amount', 
           legend: true
         });
       }
@@ -116,7 +116,7 @@ var InterfaceRepainter;
       updateElement('quarterly-rent-bill', dm.quarterlyRentBill());
       updateElement('gross-margin', dm.grossMargin());
       
-      // Update finance chart with both revenue and balance
+      // Update finance chart with revenue and balance
       if (financeChart) {
         var revenueHistory = mis.getFinancialHistory('revenue');
         var balanceHistory = mis.getFinancialHistory('bankBalance');
@@ -129,7 +129,36 @@ var InterfaceRepainter;
           financeChart.updateData(balanceHistory, 1);
         }
       }
+      // Cash low with visual meter
       updateElement('forecast-cash-low', dm.foreCastCashLow(), cashLowClass);
+      
+      // Update cash low meter
+      var cashLowMeter = document.getElementById('cash-low-meter');
+      if (cashLowMeter) {
+        var bankBalance = AppStore.bankAccount().balance();
+        var cashLow = mis.foreCastCashLow();
+        var revenue = mis.monthlyRevenue();
+        
+        // Calculate ratio for visual representation
+        var ratio = revenue === 0 ? 0 : cashLow / revenue;
+        // Cap at a max of 6 months of revenue for the meter
+        var percentFill = Math.min(Math.max(ratio / 6, 0), 1) * 100;
+        
+        // Set meter style based on health
+        var meterColor;
+        if (cashLow <= 0 || ratio < 1) {
+          meterColor = '#dc3545'; // Red - danger
+        } else if (ratio < 2) {
+          meterColor = '#ffc107'; // Yellow - warning
+        } else if (ratio < 3) {
+          meterColor = '#17a2b8'; // Blue - acceptable
+        } else {
+          meterColor = '#28a745'; // Green - good
+        }
+        
+        cashLowMeter.style.width = percentFill + '%';
+        cashLowMeter.style.backgroundColor = meterColor;
+      }
       
       // Product
       updateElement('workstation-price', dm.workstationPrice());
@@ -363,53 +392,79 @@ var InterfaceRepainter;
           var button = document.getElementById(buttonId);
           
           if (button && !button.disabled) {
-            // Capture lease data in closure to avoid reference issues
-            var leaseArea = lease.decorate().area();
-            var dealObj = deal;
+            // Instead of cloning, create a completely new button
+            var newButton = document.createElement('button');
+            newButton.innerHTML = 'Lease';
+            newButton.id = 'buy-button-' + dealId;
             
-            // Function to execute when button is activated
-            function purchaseLease(e) {
-              // Prevent default and stop propagation for reliability
-              if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-              
-              console.log("Purchasing property: " + leaseArea);
-              LeasePurchaser.call(dealObj);
-              
-              return false;
+            // Copy all the styling
+            newButton.style.padding = '5px 15px';
+            newButton.style.borderRadius = '3px';
+            newButton.style.cursor = 'pointer';
+            newButton.style.fontWeight = 'bold';
+            
+            // Copy the color styling based on affordability
+            if (button.style.backgroundColor) {
+              newButton.style.backgroundColor = button.style.backgroundColor;
+            }
+            if (button.style.color) {
+              newButton.style.color = button.style.color;
+            }
+            if (button.style.border) {
+              newButton.style.border = button.style.border;
             }
             
-            // Remove existing event listeners by cloning
-            var newButton = button.cloneNode(false); // Clone without children
-            while (button.firstChild) {
-              newButton.appendChild(button.firstChild);
-            }
+            // Capture deal object for this specific button instance
+            (function(capturedDeal, capturedArea) {
+              // Single handler function to handle both click and touch
+              var handleAction = function(e) {
+                if (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                
+                // Disable button immediately to prevent double-clicks
+                newButton.disabled = true;
+                newButton.style.opacity = '0.65';
+                newButton.style.backgroundColor = '#6c757d';
+                
+                console.log("Purchasing property: " + capturedArea);
+                // Call with the captured deal reference
+                setTimeout(function() {
+                  LeasePurchaser.call(capturedDeal);
+                }, 10);
+                
+                return false;
+              };
+              
+              // Direct event handlers
+              newButton.onclick = handleAction;
+              
+              // Visual feedback for pressing
+              newButton.addEventListener('mousedown', function() {
+                if (!newButton.disabled) newButton.style.opacity = '0.8';
+              });
+              
+              newButton.addEventListener('mouseup', function() {
+                if (!newButton.disabled) newButton.style.opacity = '1.0';
+              });
+              
+              // Touch events with more reliable handling
+              newButton.addEventListener('touchstart', function(e) {
+                if (!newButton.disabled) newButton.style.opacity = '0.8';
+              }, {passive: false});
+              
+              newButton.addEventListener('touchend', function(e) {
+                if (!newButton.disabled) {
+                  newButton.style.opacity = '1.0';
+                  handleAction(e);
+                }
+              }, {passive: false});
+              
+            })(deal, lease.decorate().area()); // Pass the current deal and area to the closure
+            
+            // Replace the original button
             button.parentNode.replaceChild(newButton, button);
-            
-            // Direct event assignment for immediate effect
-            newButton.onclick = purchaseLease;
-            
-            // Mouse event listeners for desktop
-            newButton.addEventListener('mousedown', function() {
-              newButton.style.opacity = '0.8';
-            });
-            
-            newButton.addEventListener('mouseup', function() {
-              newButton.style.opacity = '1.0';
-            });
-            
-            // Touch event listeners for mobile with passive: false for compatibility
-            newButton.addEventListener('touchstart', function(e) {
-              newButton.style.opacity = '0.8';
-            }, {passive: false});
-            
-            // Use touchend for mobile 
-            newButton.addEventListener('touchend', function(e) {
-              newButton.style.opacity = '1.0';
-              purchaseLease(e);
-            }, {passive: false});
           }
         });
       }
@@ -480,59 +535,77 @@ var InterfaceRepainter;
           var button = document.getElementById(buttonId);
           
           if (button && !button.disabled && project.conditionsMet()) {
-            // Create project execution function
-            var projectTitle = project.title(); // Capture project title in closure
-            var projectObj = project; // Capture project object in closure
+            // Create a completely new button instead of cloning
+            var newButton = document.createElement('button');
+            newButton.innerHTML = 'Go';
+            newButton.id = 'project-button-' + project.id();
             
-            function executeProject(e) {
-              // Prevent default and stop propagation for reliability
-              if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-              
-              console.log("Running project: " + projectTitle);
-              
-              // Disable the button immediately to prevent double-clicks
-              button.disabled = true;
-              button.style.backgroundColor = '#6c757d';
-              button.style.opacity = '0.65';
-              
-              // Execute the project immediately
-              ProjectRunner.call(projectObj);
-              
-              return false;
-            }
+            // Copy all styling
+            newButton.style.padding = '5px 15px';
+            newButton.style.borderRadius = '3px';
+            newButton.style.cursor = 'pointer';
+            newButton.style.fontWeight = 'bold';
+            newButton.style.backgroundColor = '#28a745';
+            newButton.style.color = 'white';
+            newButton.style.border = '1px solid #28a745';
             
-            // Remove existing event listeners by cloning
-            var newButton = button.cloneNode(false); // Clone without children
-            while (button.firstChild) {
-              newButton.appendChild(button.firstChild);
-            }
+            // Use immediately invoked function to capture project in closure
+            (function(capturedProject, capturedTitle) {
+              // Single handler function for all events
+              var handleAction = function(e) {
+                if (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                
+                // Disable button immediately to prevent double-clicks
+                newButton.disabled = true;
+                newButton.style.opacity = '0.65';
+                newButton.style.backgroundColor = '#6c757d';
+                newButton.style.border = '1px solid #6c757d';
+                
+                console.log("Running project: " + capturedTitle);
+                
+                // Small timeout to ensure UI updates before potentially heavy operation
+                setTimeout(function() {
+                  ProjectRunner.call(capturedProject);
+                }, 10);
+                
+                return false;
+              };
+              
+              // Set primary click handler
+              newButton.onclick = handleAction;
+              
+              // Visual feedback handlers
+              newButton.addEventListener('mousedown', function() {
+                if (!newButton.disabled) newButton.style.opacity = '0.8';
+              });
+              
+              newButton.addEventListener('mouseup', function() {
+                if (!newButton.disabled) newButton.style.opacity = '1.0'; 
+              });
+              
+              // Touch handlers with robust checks
+              newButton.addEventListener('touchstart', function(e) {
+                if (!newButton.disabled) {
+                  e.preventDefault(); // Prevent double events
+                  newButton.style.opacity = '0.8';
+                }
+              }, {passive: false});
+              
+              newButton.addEventListener('touchend', function(e) {
+                if (!newButton.disabled) {
+                  e.preventDefault(); // Prevent double events
+                  newButton.style.opacity = '1.0';
+                  handleAction(e);
+                }
+              }, {passive: false});
+              
+            })(project, project.title()); // Pass current project references to closure
+            
+            // Replace the old button
             button.parentNode.replaceChild(newButton, button);
-            
-            // Direct event assignment for reliability
-            newButton.onclick = executeProject;
-            
-            // Mouse event listeners for desktop
-            newButton.addEventListener('mousedown', function() {
-              newButton.style.opacity = '0.8';
-            });
-            
-            newButton.addEventListener('mouseup', function() {
-              newButton.style.opacity = '1.0';
-            });
-            
-            // Touch event listeners for mobile
-            newButton.addEventListener('touchstart', function(e) {
-              newButton.style.opacity = '0.8';
-            }, {passive: false});
-            
-            // Use both touchend and click for maximum compatibility
-            newButton.addEventListener('touchend', function(e) {
-              newButton.style.opacity = '1.0';
-              executeProject(e);
-            }, {passive: false});
           }
         });
       }

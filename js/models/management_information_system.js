@@ -22,6 +22,7 @@ var ManagementInformationSystem;
     var financialHistory = {
       revenue: [],
       bankBalance: [],
+      cashLow: [],
       maxItems: 12
     };
     
@@ -397,6 +398,13 @@ var ManagementInformationSystem;
         value: AppStore.bankAccount().balance()
       });
       
+      // Record forecast cash low
+      financialHistory.cashLow.push({
+        date: currentDate,
+        label: formattedDate,
+        value: this.foreCastCashLow()
+      });
+      
       // Keep only the last N items
       if (financialHistory.revenue.length > financialHistory.maxItems) {
         financialHistory.revenue.shift();
@@ -404,6 +412,10 @@ var ManagementInformationSystem;
       
       if (financialHistory.bankBalance.length > financialHistory.maxItems) {
         financialHistory.bankBalance.shift();
+      }
+      
+      if (financialHistory.cashLow.length > financialHistory.maxItems) {
+        financialHistory.cashLow.shift();
       }
     };
     
@@ -413,6 +425,8 @@ var ManagementInformationSystem;
         return financialHistory.revenue;
       } else if (type === 'bankBalance') {
         return financialHistory.bankBalance;
+      } else if (type === 'cashLow') {
+        return financialHistory.cashLow;
       }
       return [];
     };

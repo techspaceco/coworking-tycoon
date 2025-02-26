@@ -231,7 +231,8 @@ var SimpleLineChart = (function() {
     if (this.legend && this.datasets.length > 1) {
       var legendY = height - legendHeight + 10;
       var legendX = padding;
-      var legendSpacing = 100;
+      // Adjust spacing based on number of datasets
+      var legendSpacing = this.datasets.length <= 2 ? 100 : 90;
       
       this.datasets.forEach(function(dataset, index) {
         var lineColor = dataset.lineColor || '#28a745';

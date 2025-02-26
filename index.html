@@ -73,7 +73,7 @@
               <h4 class='card-title'>Finance</h4>
 
               <div class="finance-chart-container">
-                <canvas id="finance-chart" width="280" height="160"></canvas>
+                <canvas id="finance-chart" width="280" height="180"></canvas>
               </div>
 
               <div class="finance-grid">
@@ -81,9 +81,14 @@
                   <strong>Balance:</strong>
                   <span id='balance'></span>
                 </div>
-                <div class="finance-item">
-                  <strong>Cash Low:</strong>
-                  <span id='forecast-cash-low'></span>
+                <div class="finance-item cash-low-container">
+                  <div>
+                    <strong>Cash Low:</strong>
+                    <span id='forecast-cash-low'></span>
+                  </div>
+                  <div class="cash-forecast-meter">
+                    <div id="cash-low-meter" class="cash-forecast-meter-fill"></div>
+                  </div>
                 </div>
                 <div class="finance-item">
                   <strong>Revenue:</strong>
