@@ -25,6 +25,66 @@
   margin-bottom: 10px;
 }
 
+.gauge-feedback {
+  font-size: 0.9rem;
+  margin-top: 5px;
+  min-height: 1.2rem;
+}
+
+.nps-feedback-container {
+  margin-top: 10px;
+  padding: 0 10px;
+}
+
+.nps-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.member-satisfaction {
+  padding-top: 10px;
+  margin-bottom: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.community-events-control {
+  margin-top: 15px;
+}
+
+.events-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.events-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.events-budget-level {
+  font-size: 0.9rem;
+}
+
+.events-cost {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 3px;
+}
+
+.events-cost-note {
+  display: block;
+  font-size: 0.75rem;
+  color: #888;
+  font-style: italic;
+}
+
 .finance-chart-container {
   text-align: center;
   margin-bottom: 10px;
@@ -152,7 +212,9 @@ button {
 #increase-workstation-price,
 #decrease-workstation-price,
 #increase-density,
-#decrease-density {
+#decrease-density,
+#increase-events-budget,
+#decrease-events-budget {
   min-width: 44px;
   min-height: 44px;
   font-size: 18px;

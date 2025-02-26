@@ -133,6 +133,56 @@ var ManagementInformationSystemDecorator;
       );
     };
 
+    // NPS score methods
+    this.npsScore = function() {
+      return mis.getNpsScore ? mis.getNpsScore() : 'N/A';
+    };
+    
+    this.npsFeedback = function() {
+      return mis.getNpsFeedback ? mis.getNpsFeedback() : '';
+    };
+    
+    // Community events methods
+    this.communityEventsPerMember = function() {
+      return mis.getCommunityEventsPerMember ? mis.getCommunityEventsPerMember() : 0;
+    };
+    
+    this.eventsBudget = function() {
+      var amount = mis.getCommunityEventsPerMember ? mis.getCommunityEventsPerMember() : 0;
+      return Util.htmlCurrencySymbolMap[mis.currency()] + amount + ' per member';
+    };
+    
+    this.monthlyCommunityEventsCost = function() {
+      if (!ProjectStore.isProjectCompleted("Run Community Events")) {
+        return '£0';
+      }
+      
+      // Get member count for display
+      var memberCount = mis.memberUserCount ? mis.memberUserCount() : 0;
+      var memberText = memberCount + (memberCount === 1 ? ' member' : ' members');
+      
+      // Get the per-member budget
+      var perMemberBudget = mis.getCommunityEventsPerMember ? mis.getCommunityEventsPerMember() : 0;
+      
+      // Format the cost 
+      var monthlyCost = 0;
+      if (typeof AppStore.managementInformationSystem().monthlyStaffCost === 'function') {
+        // Find the community events cost by retrieving it from cache
+        if (AppStore.managementInformationSystem()._getCachedValues && 
+            AppStore.managementInformationSystem()._getCachedValues().monthlyCommunityEventsCost !== undefined) {
+          monthlyCost = AppStore.managementInformationSystem()._getCachedValues().monthlyCommunityEventsCost;
+        }
+      }
+      
+      var perMemberText = Util.htmlCurrencySymbolMap[mis.currency()] + perMemberBudget + " per member × " + 
+                         Util.numberWithCommas(memberCount) + " members";
+      
+      return perMemberText + " = " + 
+             Util.htmlCurrencySymbolMap[mis.currency()] + 
+             Util.numberWithCommas(monthlyCost) + 
+             ' per month';
+    };
+    
     return this;
   }
 })();

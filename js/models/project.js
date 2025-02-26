@@ -28,7 +28,13 @@ function Project(options) {
   };
 
   this.run = function () {
-    callback.call();
+    try {
+      console.log("Running project: " + title);
+      return callback.call();
+    } catch (error) {
+      console.error("Error running project callback:", error);
+      throw error;
+    }
   };
 
   this.title = function () {
