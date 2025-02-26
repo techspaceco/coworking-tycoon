@@ -35,7 +35,7 @@ var Util = {
   },
 
   htmlCurrencySymbolMap: {
-    'GBP': '&pound;'
+    'GBP': '£'
   },
 
   numberWithCommas: function (x) {

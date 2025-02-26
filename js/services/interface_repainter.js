@@ -6,6 +6,7 @@ var InterfaceRepainter;
   var cachedProjectIds = [];
   var occupancyGauge;
   var churnGauge;
+  var npsGauge;
   var financeChart;
   
   // Helper to update text content and class only when changed
@@ -58,6 +59,24 @@ var InterfaceRepainter;
       }
     }
     
+    if (!npsGauge) {
+      var npsCanvas = document.getElementById('nps-gauge');
+      if (npsCanvas) {
+        npsGauge = new SimpleGauge({
+          canvas: npsCanvas,
+          minValue: 0,
+          maxValue: 100,
+          value: 50, // Start with a neutral NPS
+          label: 'NPS',
+          colorRanges: [
+            { min: 0, max: 30, color: '#dc3545' },  // Red (low NPS is bad)
+            { min: 30, max: 70, color: '#ffc107' }, // Yellow
+            { min: 70, max: 100, color: '#28a745' } // Green (high NPS is good)
+          ]
+        });
+      }
+    }
+    
     if (!financeChart) {
       var financeCanvas = document.getElementById('finance-chart');
       if (financeCanvas) {
@@ -75,6 +94,12 @@ var InterfaceRepainter;
               data: [],
               lineColor: '#007bff', // Blue for balance
               fillColor: 'rgba(0, 123, 255, 0.1)'
+            },
+            {
+              label: 'Profit',
+              data: [],
+              lineColor: '#9c27b0', // Purple for profit
+              fillColor: 'rgba(156, 39, 176, 0.1)'
             }
           ],
           title: 'Financial History',
@@ -85,10 +110,101 @@ var InterfaceRepainter;
     }
   }
 
+  // Tracking variables to remember which features have been shown
+  var featuresShown = {
+    salesControls: false,
+    marketingControls: false,
+    communityEvents: false
+  };
+  
+  // Helper function to update feature visibility based on progression
+  function updateFeatureVisibility() {
+    // Skip if ProgressionStore is not available
+    if (typeof ProgressionStore === 'undefined') return;
+    
+    // Check if Projects store is available for completion checks
+    var projectStoreAvailable = typeof ProjectStore !== 'undefined' && ProjectStore.isProjectCompleted;
+    
+    // Update feature visibility based on project completions
+    if (projectStoreAvailable && ProgressionStore.features) {
+      // Community Events feature is only visible after completing the project
+      var showCommunityEvents = ProjectStore.isProjectCompleted("Run Community Events");
+      if (showCommunityEvents) {
+        ProgressionStore.features.communityEvents.visible = true;
+      }
+      
+      // Sales controls only visible after hiring Sales Manager
+      var showSalesControls = ProjectStore.isProjectCompleted("Hire Sales Manager");
+      if (showSalesControls) {
+        ProgressionStore.features.salesControls.visible = true;
+        featuresShown.salesControls = true;
+      }
+      
+      // Marketing controls only visible after hiring Marketing Manager
+      var showMarketingControls = ProjectStore.isProjectCompleted("Hire Marketing Manager");
+      if (showMarketingControls) {
+        ProgressionStore.features.marketingControls.visible = true;
+        featuresShown.marketingControls = true;
+      }
+    }
+    
+    // Get all feature sections
+    var featureSections = document.querySelectorAll('.feature-section');
+    
+    // Update each section's visibility
+    featureSections.forEach(function(section) {
+      var featureKey = section.getAttribute('data-feature');
+      if (featureKey) {
+        // Special handling for Sales and Marketing controls to prevent flickering
+        if (featureKey === 'salesControls' && featuresShown.salesControls) {
+          // Once Sales controls are shown, keep them shown
+          section.style.display = '';
+          section.classList.remove('feature-hidden');
+        } else if (featureKey === 'marketingControls' && featuresShown.marketingControls) {
+          // Once Marketing controls are shown, keep them shown
+          section.style.display = '';
+          section.classList.remove('feature-hidden');
+        } else if (ProgressionStore.isFeatureVisible(featureKey)) {
+          // Normal case - show if feature is visible
+          section.style.display = '';
+          section.classList.remove('feature-hidden');
+          
+          // Remember that we've shown these features
+          if (featureKey === 'salesControls') featuresShown.salesControls = true;
+          if (featureKey === 'marketingControls') featuresShown.marketingControls = true;
+          if (featureKey === 'communityEvents') featuresShown.communityEvents = true;
+        } else if ((featureKey === 'salesControls' && !featuresShown.salesControls) ||
+                   (featureKey === 'marketingControls' && !featuresShown.marketingControls) ||
+                   (featureKey === 'communityEvents' && !featuresShown.communityEvents)) {
+          // Only hide if we haven't shown it before
+          section.style.display = 'none';
+          section.classList.add('feature-hidden');
+        }
+      }
+    });
+    
+    // Special handling for Member Satisfaction panel
+    var memberSatisfactionPanel = document.getElementById('member-satisfaction-panel');
+    if (memberSatisfactionPanel && projectStoreAvailable) {
+      if (ProjectStore.isProjectCompleted("Run Community Events")) {
+        memberSatisfactionPanel.style.display = 'block';
+      }
+    }
+  }
+  
   InterfaceRepainter = {
+    // Expose functions for direct access
+    updateFeatureVisibility: updateFeatureVisibility,
+    initGauges: initGauges,
+    // Expose tracking variables to allow direct access
+    featuresShown: featuresShown,
+    
     call: function () {
       // Initialize gauges if not already done
       initGauges();
+      
+      // Update feature visibility based on progression
+      updateFeatureVisibility();
       
       var mis = AppStore.managementInformationSystem();
       var dm = mis.decorate();
@@ -116,10 +232,11 @@ var InterfaceRepainter;
       updateElement('quarterly-rent-bill', dm.quarterlyRentBill());
       updateElement('gross-margin', dm.grossMargin());
       
-      // Update finance chart with revenue and balance
+      // Update finance chart with revenue, balance, and profit
       if (financeChart) {
         var revenueHistory = mis.getFinancialHistory('revenue');
         var balanceHistory = mis.getFinancialHistory('bankBalance');
+        var profitHistory = mis.getFinancialHistory('profit');
         
         if (revenueHistory.length > 0) {
           financeChart.updateData(revenueHistory, 0);
@@ -127,6 +244,10 @@ var InterfaceRepainter;
         
         if (balanceHistory.length > 0) {
           financeChart.updateData(balanceHistory, 1);
+        }
+        
+        if (profitHistory.length > 0) {
+          financeChart.updateData(profitHistory, 2);
         }
       }
       // Cash low with visual meter
@@ -181,6 +302,45 @@ var InterfaceRepainter;
         // Cap at 100% for display
         churnValue = Math.min(churnValue, 100);
         churnGauge.updateValue(churnValue);
+      }
+      
+      // Update NPS gauge if available and MIS has the method
+      if (npsGauge && mis.getNpsScore) {
+        // Get the current NPS value (don't recalculate here - that happens on a schedule)
+        var npsValue = mis.getNpsScore();
+        console.log("Updating NPS gauge with current value: " + npsValue);
+        npsGauge.updateValue(npsValue);
+        
+        // Update NPS feedback 
+        var npsFeedbackElement = document.getElementById('nps-feedback');
+        if (npsFeedbackElement) {
+          var feedback = mis.getNpsFeedback ? mis.getNpsFeedback() : "No feedback available";
+          
+          // Ensure we have feedback content
+          if (!feedback || feedback.trim() === "") {
+            feedback = "Members are generally satisfied";
+          }
+          
+          npsFeedbackElement.textContent = feedback;
+          
+          // Set color based on NPS value
+          if (npsValue < 30) {
+            npsFeedbackElement.style.color = '#dc3545'; // Red for low NPS
+          } else if (npsValue < 70) {
+            npsFeedbackElement.style.color = '#ffc107'; // Yellow for medium NPS
+          } else {
+            npsFeedbackElement.style.color = '#28a745'; // Green for high NPS
+          }
+          
+          // Make sure feedback is visible
+          npsFeedbackElement.style.display = "block";
+        }
+        
+        // Update community events budget with formatted text
+        var eventsBudgetElement = document.getElementById('events-budget');
+        if (eventsBudgetElement && dm.eventsBudget) {
+          eventsBudgetElement.textContent = dm.eventsBudget();
+        }
       }
 
       // Sales
@@ -279,12 +439,10 @@ var InterfaceRepainter;
       updateElement('space-count', Util.numberWithCommas(AppStore.spaces().length));
       updateElement('space-total-area', dm.totalArea());
       
-      // Style the workstation price buttons
-      var increaseWorkstationPriceButton = document.getElementById('increase-workstation-price');
-      var decreaseWorkstationPriceButton = document.getElementById('decrease-workstation-price');
-      
+      // Style all control buttons
       // Apply consistent button styling
       function styleControlButton(button) {
+        if (!button) return;
         button.style.padding = '2px 10px';
         button.style.borderRadius = '3px';
         button.style.cursor = 'pointer';
@@ -296,15 +454,17 @@ var InterfaceRepainter;
         button.style.fontSize = '16px';
       }
       
-      styleControlButton(increaseWorkstationPriceButton);
-      styleControlButton(decreaseWorkstationPriceButton);
+      // Style workstation price buttons
+      styleControlButton(document.getElementById('increase-workstation-price'));
+      styleControlButton(document.getElementById('decrease-workstation-price'));
       
-      // Style the density buttons
-      var increaseDensityButton = document.getElementById('increase-density');
-      var decreaseDensityButton = document.getElementById('decrease-density');
+      // Style density buttons
+      styleControlButton(document.getElementById('increase-density'));
+      styleControlButton(document.getElementById('decrease-density'));
       
-      styleControlButton(increaseDensityButton);
-      styleControlButton(decreaseDensityButton);
+      // Style events budget buttons
+      styleControlButton(document.getElementById('increase-events-budget'));
+      styleControlButton(document.getElementById('decrease-events-budget'));
       
       // Debug panel removed as requested
   
@@ -362,10 +522,9 @@ var InterfaceRepainter;
                 
                 buttonStyle = `background-color:${buttonColor};color:${textColor};border:1px solid ${buttonColor};`;
                 
-                // Create the button with direct inline onclick handler that calls LeasePurchaser immediately
-                buttonHtml = `<button type="button" class="${buttonClass}" 
-                    style="padding:5px 15px;border-radius:3px;cursor:pointer;font-weight:bold;${buttonStyle}"
-                    onclick="LeasePurchaser.call(window.currentDeals[${index}]);this.disabled=true;this.style.opacity='0.65';this.style.backgroundColor='#6c757d';this.style.border='1px solid #6c757d';">
+                // Create button with id for better event handling
+                buttonHtml = `<button type="button" id="lease-button-${index}" class="${buttonClass}" 
+                    style="padding:5px 15px;border-radius:3px;cursor:pointer;font-weight:bold;${buttonStyle}">
                     Lease
                 </button>`;
             } else {
@@ -395,6 +554,104 @@ var InterfaceRepainter;
         
         // Set all the HTML at once
         dealsEl.innerHTML = tempDealsHtml.join('');
+        
+        // Attach event listeners to each lease button
+        deals.forEach(function(deal, index) {
+          // Check if player can afford this property
+          if (bankBalance >= deal.lease().deposit()) {
+            var leaseButtonId = "lease-button-" + index;
+            var leaseButton = document.getElementById(leaseButtonId);
+            
+            if (leaseButton) {
+              console.log("Adding event listeners to lease button: " + leaseButtonId);
+              
+              // Remove any existing listeners and clone the node
+              var newButton = leaseButton.cloneNode(true);
+              leaseButton.parentNode.replaceChild(newButton, leaseButton);
+              
+              // Add mousedown event listener
+              newButton.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                console.log("Lease button clicked (mouse): " + leaseButtonId);
+                executeLeasePurchase(this, index);
+              });
+              
+              // Add touch event listeners for mobile
+              newButton.addEventListener('touchstart', function(e) {
+                e.preventDefault(); // Prevent double events
+                this.style.opacity = '0.8'; // Visual feedback
+              });
+              
+              newButton.addEventListener('touchend', function(e) {
+                e.preventDefault(); // Prevent double events
+                console.log("Lease button clicked (touch): " + leaseButtonId);
+                executeLeasePurchase(this, index);
+              });
+              
+              // Function to handle lease purchase
+              function executeLeasePurchase(buttonElement, dealIndex) {
+                console.log("Executing lease purchase for index: " + dealIndex + " with total deals: " + window.currentDeals.length);
+                
+                // Disable button immediately
+                try {
+                  buttonElement.disabled = true;
+                  buttonElement.style.opacity = '0.65';
+                  buttonElement.style.backgroundColor = '#6c757d';
+                  buttonElement.style.border = '1px solid #6c757d';
+                } catch (err) {
+                  console.error("Error disabling button:", err);
+                }
+                
+                // Execute lease purchase after a tiny delay
+                setTimeout(function() {
+                  try {
+                    // Verify window.currentDeals exists and has the entry
+                    if (!window.currentDeals) {
+                      console.error("window.currentDeals is undefined!");
+                      return;
+                    }
+                    
+                    // Log current deals to help debug
+                    console.log("Current deals array length: " + window.currentDeals.length);
+                    
+                    if (dealIndex >= window.currentDeals.length) {
+                      console.error("Deal index " + dealIndex + " is out of bounds (array length: " + window.currentDeals.length + ")");
+                      return;
+                    }
+                    
+                    var dealToLease = window.currentDeals[dealIndex];
+                    if (!dealToLease) {
+                      console.error("No deal found at index " + dealIndex);
+                      return;
+                    }
+                    
+                    // Log the deal being leased
+                    console.log("Leasing deal: ", dealToLease);
+                    var lease = dealToLease.lease();
+                    if (!lease) {
+                      console.error("Deal has no lease property!");
+                      return;
+                    }
+                    
+                    console.log("Lease details - Price: " + lease.pricePerSquareFoot() + ", Area: " + lease.area() + ", Deposit: " + lease.deposit());
+                    
+                    // Call the lease purchaser
+                    LeasePurchaser.call(dealToLease);
+                    console.log("Lease purchase successfully executed");
+                    
+                    // Force UI refresh to show changes
+                    needsUiUpdate = true;
+                  } catch (err) {
+                    console.error("Error executing lease purchase:", err);
+                    alert("There was an error leasing this property. Please try again.");
+                  }
+                }, 10);
+              }
+            } else {
+              console.error("Could not find lease button with ID: " + leaseButtonId);
+            }
+          }
+        });
       }
 
       // ALWAYS redraw projects - disable caching for now
@@ -415,22 +672,25 @@ var InterfaceRepainter;
             var p = project.decorate();
             var conditionsMet = project.conditionsMet();
             
+            // Generate unique project ID based on title
+            const projectId = project.id ? project.id() : ("project_" + p.title().replace(/\s+/g, "_").toLowerCase());
+            const buttonId = `${projectId}-button`;
+            
             // Log project condition check
-            console.log("Project: " + p.title() + " - Conditions met: " + conditionsMet);
+            console.log("Project: " + p.title() + " - ID: " + projectId + " - Conditions met: " + conditionsMet);
             
             // Prepare button HTML based on conditions
             var buttonHtml;
             if (conditionsMet) {
-                // Enabled button with inline handler
-                buttonHtml = `<button type="button" class="project-button"
-                    style="padding:5px 15px;border-radius:3px;cursor:pointer;font-weight:bold;background-color:#28a745;color:white;border:1px solid #28a745;"
-                    onclick="ProjectRunner.call(window.currentProjects[${index}]);this.disabled=true;this.style.opacity='0.65';this.style.backgroundColor='#6c757d';this.style.border='1px solid #6c757d';">
+                // Enabled button with more robust onclick handler
+                buttonHtml = `<button type="button" id="${buttonId}" class="project-button"
+                    style="padding:8px 15px;border-radius:3px;cursor:pointer;font-weight:bold;background-color:#28a745;color:white;border:1px solid #28a745;min-width:80px;min-height:44px;">
                     Go
                 </button>`;
             } else {
-                // Disabled button
-                buttonHtml = `<button type="button" disabled
-                    style="padding:5px 15px;border-radius:3px;font-weight:bold;background-color:#6c757d;color:white;border:1px solid #6c757d;opacity:0.65;">
+                // Disabled button with ID for potential future enabling
+                buttonHtml = `<button type="button" id="${buttonId}" disabled
+                    style="padding:8px 15px;border-radius:3px;font-weight:bold;background-color:#6c757d;color:white;border:1px solid #6c757d;opacity:0.65;min-width:80px;min-height:44px;">
                     Go
                 </button>`;
             }
@@ -448,12 +708,85 @@ var InterfaceRepainter;
             tempProjectsHtml.push(projectHtml);
         });
         
-        // Make the projects available globally for the inline handlers to access
+        // Make the projects available globally 
         window.currentProjects = projects;
         
         // Set all the HTML at once
         projectsEl.innerHTML = tempProjectsHtml.join('');
+        
+        // Now attach event listeners to each project button properly
+        projects.forEach(function(project, index) {
+            if (project.conditionsMet()) {
+                // Get the unique project ID
+                const projectId = project.id ? project.id() : ("project_" + project.title().replace(/\s+/g, "_").toLowerCase());
+                const buttonId = `${projectId}-button`;
+                const button = document.getElementById(buttonId);
+                
+                if (button) {
+                    console.log("Adding click listener to button: " + buttonId);
+                    
+                    // Remove any existing listeners and clone the node
+                    var newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
+                    
+                    // Add click handler to the new button - use both mousedown and touchstart for responsiveness
+                    newButton.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        console.log("Project button clicked (mouse): " + projectId);
+                        
+                        // Execute project (with button already disabled to prevent double-clicks)
+                        executeProject(this, index, projectId);
+                    });
+                    
+                    // Add touch handlers for mobile
+                    newButton.addEventListener('touchstart', function(e) {
+                        e.preventDefault(); // Prevent double events
+                        this.style.opacity = '0.8'; // Visual feedback
+                    });
+                    
+                    newButton.addEventListener('touchend', function(e) {
+                        e.preventDefault(); // Prevent double events
+                        console.log("Project button clicked (touch): " + projectId);
+                        
+                        // Execute project
+                        executeProject(this, index, projectId);
+                    });
+                    
+                    // Function to execute project and handle UI
+                    function executeProject(buttonElement, projectIndex, id) {
+                        // Disable the button immediately
+                        buttonElement.disabled = true;
+                        buttonElement.style.opacity = '0.65';
+                        buttonElement.style.backgroundColor = '#6c757d';
+                        buttonElement.style.border = '1px solid #6c757d';
+                        
+                        setTimeout(function() {
+                            try {
+                                const projectToRun = window.currentProjects[projectIndex];
+                                if (projectToRun && typeof ProjectRunner !== 'undefined') {
+                                    // Log the project being executed
+                                    console.log("Executing project: " + id);
+                                    
+                                    // Call the ProjectRunner
+                                    ProjectRunner.call(projectToRun);
+                                } else {
+                                    console.error("Invalid project reference or ProjectRunner not defined");
+                                }
+                            } catch (err) {
+                                console.error("Error executing project:", err);
+                            }
+                        }, 10); // Short timeout to ensure UI updates first
+                    }
+                } else {
+                    console.error("Could not find button with ID: " + buttonId);
+                }
+            }
+        });
       }
+      
+      // Final check to ensure visibility rules are applied
+      // This enforces all our feature visibility rules consistently
+      updateFeatureVisibility();
     }
   };
 })();

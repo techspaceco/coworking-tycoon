@@ -17,6 +17,7 @@
     <script src='./js/lib/util.js'></script>
     <script src='./js/lib/charts/gauge.js'></script>
     <script src='./js/lib/charts/line-chart.js'></script>
+    <script src='./js/stores/progression_store.js'></script>
     <script src='./js/models/bank_account.js'></script>
     <script src='./js/models/lead.js'></script>
     <script src='./js/models/lease.js'></script>
@@ -110,7 +111,7 @@
             </div>
           </div>
 
-          <div class='card mb-3'>
+          <div class='card mb-3 feature-section' data-feature="product">
             <div class='card-body'>
               <h4 class='card-title'>Product</h4>
 
@@ -136,11 +137,24 @@
                     </div>
                   </div>
                 </div>
+                
+                <div class="level-group" id="community-events-outer-container">
+                  <div id="community-events-container" class="feature-section" data-feature="communityEvents" style="display: none;">
+                    <div class="product-control-item">
+                      <div class="control-label"><strong>Events Budget:</strong></div>
+                      <div class="control-buttons">
+                        <button id="decrease-events-budget">-</button>
+                        <button id="increase-events-budget">+</button>
+                        <span id="events-budget"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class='card mb-3'>
+          <div class='card mb-3 feature-section' data-feature="development">
             <div class='card-body'>
               <h4 class='card-title'>Development</h4>
               
@@ -167,51 +181,220 @@
                 Sales & Marketing
               </h4>
 
-              <div class="gauge-row">
+              <div class="gauge-row feature-section" data-feature="occupancyGauge">
                 <div class="gauge-container">
                   <canvas id="occupancy-gauge" width="120" height="100"></canvas>
                   <span id='occupancy' style="display: none;"></span>
                 </div>
 
-                <div class="gauge-container">
+                <div class="gauge-container feature-section" data-feature="churnGauge">
                   <canvas id="churn-gauge" width="120" height="100"></canvas>
                   <span id='monthly-churn-rate' style="display: none;"></span>
                 </div>
               </div>
-
-              <div class="level-group">
-                <div class="level-controls">
-                  <div class="level-label">
-                    <strong>Sales:</strong> Level <span id='sales-level'></span>
-                  </div>
-                  <div class="level-button">
-                    <button id='sales-level-up-button'>Level up</button>
-                  </div>
-                  <div class="level-cost">
-                    <span id='sales-level-up-cost'></span>
+              
+              <div class="member-satisfaction" id="member-satisfaction-panel" style="display: none;">
+                <h5 class="section-subtitle">Member Satisfaction</h5>
+                <div class="gauge-row">
+                  <div class="gauge-container">
+                    <canvas id="nps-gauge" width="120" height="100"></canvas>
                   </div>
                 </div>
-                <div class="level-info">
-                  Volume: <span id='monthly-sales-volume'></span>
+                
+                <div class="nps-feedback-container">
+                  <div class="nps-label">Top Feedback:</div>
+                  <div id="nps-feedback" class="gauge-feedback"></div>
+                </div>
+              </div>
+
+              <!-- Sales controls with an outer container that won't be affected by feature visibility -->
+              <div id="sales-outer-container">
+                <div id="sales-controls-container" class="level-group feature-section" data-feature="salesControls" style="display: none;">
+                  <div class="level-controls">
+                    <div class="level-label">
+                      <strong>Sales:</strong> Level <span id='sales-level'></span>
+                    </div>
+                    <div class="level-button">
+                      <button id='sales-level-up-button'>Level up</button>
+                    </div>
+                    <div class="level-cost">
+                      <span id='sales-level-up-cost'></span>
+                    </div>
+                  </div>
+                  <div class="level-info">
+                    Volume: <span id='monthly-sales-volume'></span>
+                  </div>
                 </div>
               </div>
               
-              <div class="level-group">
-                <div class="level-controls">
-                  <div class="level-label">
-                    <strong>Marketing:</strong> Level <span id='marketing-level'></span>
+              <!-- Marketing controls with an outer container that won't be affected by feature visibility -->
+              <div id="marketing-outer-container">
+                <div id="marketing-controls-container" class="level-group feature-section" data-feature="marketingControls" style="display: none;">
+                  <div class="level-controls">
+                    <div class="level-label">
+                      <strong>Marketing:</strong> Level <span id='marketing-level'></span>
+                    </div>
+                    <div class="level-button">
+                      <button id='marketing-level-up-button'>Level up</button>
+                    </div>
+                    <div class="level-cost">
+                      <span id='marketing-level-up-cost'></span>
+                    </div>
                   </div>
-                  <div class="level-button">
-                    <button id='marketing-level-up-button'>Level up</button>
+                  <div class="level-info">
+                    Leads: <span id='monthly-lead-volume'></span>
                   </div>
-                  <div class="level-cost">
-                    <span id='marketing-level-up-cost'></span>
-                  </div>
-                </div>
-                <div class="level-info">
-                  Leads: <span id='monthly-lead-volume'></span>
                 </div>
               </div>
+              
+              <!-- Directly handle feature visibility for Sales and Marketing controls -->
+              <script>
+                // Create global variables to track project completions
+                window.SALES_MANAGER_HIRED = false;
+                window.MARKETING_MANAGER_HIRED = false;
+                window.COMMUNITY_EVENTS_RUNNING = false;
+                
+                // Function to show Community Events Budget permanently
+                window.showCommunityEvents = function() {
+                  if (window.COMMUNITY_EVENTS_RUNNING) return; // Already handled
+                  
+                  window.COMMUNITY_EVENTS_RUNNING = true;
+                  console.log("PERMANENT: Showing Community Events Budget");
+                  
+                  // Directly manipulate the main container
+                  var eventsContainer = document.getElementById('community-events-container');
+                  var eventsOuterContainer = document.getElementById('community-events-outer-container');
+                  
+                  if (eventsContainer) {
+                    // Remove the feature-section class to bypass the feature visibility system
+                    eventsContainer.classList.remove('feature-section'); 
+                    eventsContainer.removeAttribute('data-feature');
+                    
+                    // Force display
+                    eventsContainer.style.cssText = "display: block !important";
+                    
+                    // Make sure the outer container is visible too
+                    if (eventsOuterContainer) {
+                      eventsOuterContainer.style.cssText = "display: block !important";
+                    }
+                    
+                    console.log("Community Events Budget now permanently visible");
+                  }
+                  
+                  // Also set the ProgressionStore flag for belt and suspenders
+                  if (typeof ProgressionStore !== 'undefined' && ProgressionStore.features) {
+                    ProgressionStore.features.communityEvents.visible = true;
+                  }
+                  
+                  // Force UI refresh
+                  if (typeof needsUiUpdate !== 'undefined') {
+                    needsUiUpdate = true;
+                  }
+                }
+                
+                // Function to show Sales controls permanently
+                window.showSalesControls = function() {
+                  if (window.SALES_MANAGER_HIRED) return; // Already handled
+                  
+                  window.SALES_MANAGER_HIRED = true;
+                  console.log("PERMANENT: Showing Sales controls");
+                  
+                  // Directly manipulate the main container
+                  var salesContainer = document.getElementById('sales-controls-container');
+                  var salesOuterContainer = document.getElementById('sales-outer-container');
+                  
+                  if (salesContainer) {
+                    // Remove the feature-section class to bypass the feature visibility system
+                    salesContainer.classList.remove('feature-section'); 
+                    salesContainer.removeAttribute('data-feature');
+                    
+                    // Force display
+                    salesContainer.style.cssText = "display: block !important";
+                    
+                    // Make sure the outer container is visible too
+                    if (salesOuterContainer) {
+                      salesOuterContainer.style.cssText = "display: block !important";
+                    }
+                    
+                    console.log("Sales controls now permanently visible");
+                  }
+                  
+                  // Also set the ProgressionStore flag for belt and suspenders
+                  if (typeof ProgressionStore !== 'undefined' && ProgressionStore.features) {
+                    ProgressionStore.features.salesControls.visible = true;
+                  }
+                  
+                  // Force UI refresh
+                  if (typeof needsUiUpdate !== 'undefined') {
+                    needsUiUpdate = true;
+                  }
+                }
+                
+                // Function to show Marketing controls permanently
+                window.showMarketingControls = function() {
+                  if (window.MARKETING_MANAGER_HIRED) return; // Already handled
+                  
+                  window.MARKETING_MANAGER_HIRED = true;
+                  console.log("PERMANENT: Showing Marketing controls");
+                  
+                  // Directly manipulate the main container
+                  var marketingContainer = document.getElementById('marketing-controls-container');
+                  var marketingOuterContainer = document.getElementById('marketing-outer-container');
+                  
+                  if (marketingContainer) {
+                    // Remove the feature-section class to bypass the feature visibility system
+                    marketingContainer.classList.remove('feature-section');
+                    marketingContainer.removeAttribute('data-feature');
+                    
+                    // Force display
+                    marketingContainer.style.cssText = "display: block !important";
+                    
+                    // Make sure the outer container is visible too
+                    if (marketingOuterContainer) {
+                      marketingOuterContainer.style.cssText = "display: block !important";
+                    }
+                    
+                    console.log("Marketing controls now permanently visible");
+                  }
+                  
+                  // Also set the ProgressionStore flag for belt and suspenders
+                  if (typeof ProgressionStore !== 'undefined' && ProgressionStore.features) {
+                    ProgressionStore.features.marketingControls.visible = true;
+                  }
+                  
+                  // Force UI refresh
+                  if (typeof needsUiUpdate !== 'undefined') {
+                    needsUiUpdate = true;
+                  }
+                }
+                
+                // Check project completion status frequently
+                var projectCheckInterval = setInterval(function() {
+                  try {
+                    if (typeof ProjectStore !== 'undefined' && ProjectStore.isProjectCompleted) {
+                      // Check Sales Manager project
+                      if (ProjectStore.isProjectCompleted("Hire Sales Manager")) {
+                        window.showSalesControls();
+                      }
+                      
+                      // Check Marketing Manager project
+                      if (ProjectStore.isProjectCompleted("Hire Marketing Manager")) {
+                        window.showMarketingControls();
+                      }
+                      
+                      // Check Community Events project
+                      if (ProjectStore.isProjectCompleted("Run Community Events")) {
+                        window.showCommunityEvents();
+                      }
+                      
+                      // Continue checking every interval, even after projects complete
+                      // This ensures controls remain visible and handles any repainting issues
+                    }
+                  } catch (err) {
+                    console.error("Error in project check interval:", err);
+                  }
+                }, 500); // Check every 500ms
+              </script>
             </div>
           </div>
         </div>
