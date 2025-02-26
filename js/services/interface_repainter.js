@@ -537,10 +537,10 @@ var InterfaceRepainter;
             
             // Build the complete HTML for this deal
             var dealHtml = `
-                <div class="border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3">
-                    <p>Price: ${priceText}</p>
-                    <p>Area: ${areaText}</p>
-                    <p>Deposit: ${depositText}</p>
+                <div class="property-card mb-4 p-3 bg-light rounded">
+                    <p><strong>Price:</strong> ${priceText}</p>
+                    <p><strong>Area:</strong> ${areaText}</p>
+                    <p><strong>Deposit:</strong> ${depositText}</p>
                     ${buttonHtml}
                 </div>
             `;
@@ -697,9 +697,9 @@ var InterfaceRepainter;
             
             // Build the complete project HTML
             var projectHtml = `
-                <div class="border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3">
-                    <h5>${p.title()}<small class="text-muted"> ${p.conditions()}</small></h5>
-                    <p>${p.description()}</p>
+                <div class="project-card mb-4 p-3 bg-light rounded">
+                    <h5 class="project-title">${p.title()}<small class="text-muted ms-2"> ${p.conditions()}</small></h5>
+                    <p class="project-description mb-3">${p.description()}</p>
                     ${buttonHtml}
                 </div>
             `;
@@ -787,6 +787,50 @@ var InterfaceRepainter;
       // Final check to ensure visibility rules are applied
       // This enforces all our feature visibility rules consistently
       updateFeatureVisibility();
+      
+      // Apply animations to newly visible elements
+      try {
+        var newlyVisibleFeatures = document.querySelectorAll('.feature-section:not(.feature-hidden):not(.animated)');
+        for (var i = 0; i < newlyVisibleFeatures.length; i++) {
+          var element = newlyVisibleFeatures[i];
+          // Add fadeIn animation to newly visible features
+          element.style.animation = 'fadeIn 0.4s ease-out';
+          element.classList.add('animated');
+          
+          // Add pulse animation to buttons in newly visible features
+          var buttons = element.querySelectorAll('button');
+          for (var j = 0; j < buttons.length; j++) {
+            buttons[j].style.animation = 'pulse 0.8s ease-out';
+          }
+        }
+        
+        // Apply pulse animation to important finance items when in danger zone
+        var financeItems = document.querySelectorAll('.finance-item');
+        for (var k = 0; k < financeItems.length; k++) {
+          var item = financeItems[k];
+          var valueSpan = item.querySelector('span');
+          if (valueSpan && valueSpan.classList.contains('text-danger')) {
+            if (!item.classList.contains('pulse-animation')) {
+              item.classList.add('pulse-animation');
+            }
+          } else {
+            item.classList.remove('pulse-animation');
+          }
+        }
+        
+        // Apply pulse animation to cash low meter when in danger
+        var cashLowMeter = document.getElementById('cash-low-meter');
+        var forecastSpan = document.getElementById('forecast-cash-low');
+        if (cashLowMeter && forecastSpan && forecastSpan.classList.contains('text-danger')) {
+          if (!cashLowMeter.classList.contains('pulse-animation')) {
+            cashLowMeter.classList.add('pulse-animation');
+          }
+        } else if (cashLowMeter) {
+          cashLowMeter.classList.remove('pulse-animation');
+        }
+      } catch (e) {
+        console.error("Error applying animations:", e);
+      }
     }
   };
 })();

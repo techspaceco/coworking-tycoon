@@ -8,15 +8,17 @@
 
     <link
       rel='stylesheet'
-      href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css'
-      integrity='sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M'
+      href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'
+      integrity='sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM'
       crossorigin='anonymous'
     >
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href='./css/app.css' rel='stylesheet' type='text/css'>
     <script src='./js/lib/logger.js'></script>
     <script src='./js/lib/util.js'></script>
     <script src='./js/lib/charts/gauge.js'></script>
     <script src='./js/lib/charts/line-chart.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script src='./js/stores/progression_store.js'></script>
     <script src='./js/models/bank_account.js'></script>
     <script src='./js/models/lead.js'></script>
@@ -45,16 +47,18 @@
     <script src='./js/app.js'></script>
   </head>
   <body>
-    <div id='console'></div>
+    <div class="container-fluid mt-3">
+      <div id='console'></div>
+    </div>
 
     <div class='container-fluid'>
       <div class='row pt-3 pb-2'>
-        <div class='col'>
-          <h3><strong><span id='member-count'></span> Members</strong></h3>
+        <div class='col-md-6'>
+          <h3><strong><i class="bi bi-people-fill me-2"></i><span id='member-count'></span> Members</strong></h3>
         </div>
 
-        <div class='col'>
-          <span id='date' class='float-right'></span>
+        <div class='col-md-6'>
+          <span id='date' class='float-end'><i class="bi bi-calendar3 me-2"></i></span>
         </div>
       </div>
 
@@ -62,7 +66,7 @@
         <div class='col'>
           <div class='card mb-3'>
             <div class='card-body'>
-              <h4 class='card-title'>Real Estate Market</h4>
+              <h4 class='card-title'><i class="bi bi-building me-2"></i>Real Estate Market</h4>
 
               <div id='deals'></div>
             </div>
@@ -71,7 +75,7 @@
         <div class='col'>
           <div class='card mb-3'>
             <div class='card-body'>
-              <h4 class='card-title'>Finance</h4>
+              <h4 class='card-title'><i class="bi bi-cash-coin me-2"></i>Finance</h4>
 
               <div class="finance-chart-container">
                 <canvas id="finance-chart" width="280" height="180"></canvas>
@@ -79,32 +83,38 @@
 
               <div class="finance-grid">
                 <div class="finance-item">
-                  <strong>Balance:</strong>
+                  <strong><i class="bi bi-wallet2 me-1"></i>Balance:</strong>
                   <span id='balance'></span>
                 </div>
                 <div class="finance-item cash-low-container">
                   <div>
-                    <strong>Cash Low:</strong>
+                    <strong><i class="bi bi-exclamation-triangle me-1"></i>Cash Low:</strong>
                     <span id='forecast-cash-low'></span>
                   </div>
                   <div class="cash-forecast-meter">
                     <div id="cash-low-meter" class="cash-forecast-meter-fill"></div>
                   </div>
                 </div>
+              </div>
+              
+              <div class="finance-grid mt-3">
                 <div class="finance-item">
-                  <strong>Revenue:</strong>
+                  <strong><i class="bi bi-graph-up me-1"></i>Revenue:</strong>
                   <span id='monthly-revenue'></span>
                 </div>
                 <div class="finance-item">
-                  <strong>Overheads:</strong>
+                  <strong><i class="bi bi-box-arrow-down me-1"></i>Overheads:</strong>
                   <span id='monthly-overheads'></span>
                 </div>
+              </div>
+              
+              <div class="finance-grid mt-3">
                 <div class="finance-item">
-                  <strong>Rent:</strong>
+                  <strong><i class="bi bi-building me-1"></i>Rent:</strong>
                   <span id='quarterly-rent-bill'></span>
                 </div>
                 <div class="finance-item">
-                  <strong>Margin:</strong>
+                  <strong><i class="bi bi-percent me-1"></i>Margin:</strong>
                   <span id='gross-margin'></span>
                 </div>
               </div>
@@ -113,15 +123,15 @@
 
           <div class='card mb-3 feature-section' data-feature="product">
             <div class='card-body'>
-              <h4 class='card-title'>Product</h4>
+              <h4 class='card-title'><i class="bi bi-gear-fill me-2"></i>Product</h4>
 
               <div class="product-controls">
                 <div class="level-group">
                   <div class="product-control-item">
-                    <div class="control-label"><strong>Price:</strong></div>
+                    <div class="control-label"><strong><i class="bi bi-currency-dollar me-1"></i>Price:</strong></div>
                     <div class="control-buttons">
-                      <button id='decrease-workstation-price'>-</button>
-                      <button id='increase-workstation-price'>+</button>
+                      <button id='decrease-workstation-price'><i class="bi bi-dash-lg"></i></button>
+                      <button id='increase-workstation-price'><i class="bi bi-plus-lg"></i></button>
                       <span id='workstation-price'></span>
                     </div>
                   </div>
@@ -129,10 +139,10 @@
                 
                 <div class="level-group">
                   <div class="product-control-item">
-                    <div class="control-label"><strong>Density:</strong></div>
+                    <div class="control-label"><strong><i class="bi bi-people me-1"></i>Density:</strong></div>
                     <div class="control-buttons">
-                      <button id='decrease-density'>-</button>
-                      <button id='increase-density'>+</button>
+                      <button id='decrease-density'><i class="bi bi-dash-lg"></i></button>
+                      <button id='increase-density'><i class="bi bi-plus-lg"></i></button>
                       <span id='density'></span>
                     </div>
                   </div>
@@ -141,10 +151,10 @@
                 <div class="level-group" id="community-events-outer-container">
                   <div id="community-events-container" class="feature-section" data-feature="communityEvents" style="display: none;">
                     <div class="product-control-item">
-                      <div class="control-label"><strong>Events Budget:</strong></div>
+                      <div class="control-label"><strong><i class="bi bi-calendar-event me-1"></i>Events Budget:</strong></div>
                       <div class="control-buttons">
-                        <button id="decrease-events-budget">-</button>
-                        <button id="increase-events-budget">+</button>
+                        <button id="decrease-events-budget"><i class="bi bi-dash-lg"></i></button>
+                        <button id="increase-events-budget"><i class="bi bi-plus-lg"></i></button>
                         <span id="events-budget"></span>
                       </div>
                     </div>
@@ -156,16 +166,16 @@
 
           <div class='card mb-3 feature-section' data-feature="development">
             <div class='card-body'>
-              <h4 class='card-title'>Development</h4>
+              <h4 class='card-title'><i class="bi bi-house-gear me-2"></i>Development</h4>
               
               <div class="level-group">
                 <div class="info-grid">
                   <div class="info-item">
-                    <strong>Spaces:</strong>
+                    <strong><i class="bi bi-building-lock me-1"></i>Spaces:</strong>
                     <span id='space-count'></span>
                   </div>
                   <div class="info-item">
-                    <strong>Area:</strong>
+                    <strong><i class="bi bi-bounding-box me-1"></i>Area:</strong>
                     <span id='space-total-area'></span>
                   </div>
                 </div>
@@ -178,7 +188,7 @@
           <div class='card mb-3'>
             <div class='card-body'>
               <h4 class='card-title'>
-                Sales & Marketing
+                <i class="bi bi-graph-up-arrow me-2"></i>Sales & Marketing
               </h4>
 
               <div class="gauge-row feature-section" data-feature="occupancyGauge">
@@ -212,10 +222,10 @@
                 <div id="sales-controls-container" class="level-group feature-section" data-feature="salesControls" style="display: none;">
                   <div class="level-controls">
                     <div class="level-label">
-                      <strong>Sales:</strong> Level <span id='sales-level'></span>
+                      <strong><i class="bi bi-megaphone me-1"></i>Sales:</strong> Level <span id='sales-level'></span>
                     </div>
                     <div class="level-button">
-                      <button id='sales-level-up-button'>Level up</button>
+                      <button id='sales-level-up-button'><i class="bi bi-arrow-up-circle me-1"></i>Level up</button>
                     </div>
                     <div class="level-cost">
                       <span id='sales-level-up-cost'></span>
@@ -232,10 +242,10 @@
                 <div id="marketing-controls-container" class="level-group feature-section" data-feature="marketingControls" style="display: none;">
                   <div class="level-controls">
                     <div class="level-label">
-                      <strong>Marketing:</strong> Level <span id='marketing-level'></span>
+                      <strong><i class="bi bi-broadcast me-1"></i>Marketing:</strong> Level <span id='marketing-level'></span>
                     </div>
                     <div class="level-button">
-                      <button id='marketing-level-up-button'>Level up</button>
+                      <button id='marketing-level-up-button'><i class="bi bi-arrow-up-circle me-1"></i>Level up</button>
                     </div>
                     <div class="level-cost">
                       <span id='marketing-level-up-cost'></span>
@@ -402,7 +412,7 @@
         <div class='col'>
           <div class='card mb-3'>
             <div class='card-body'>
-              <h4 class='card-title'>Projects</h4>
+              <h4 class='card-title'><i class="bi bi-kanban me-2"></i>Projects</h4>
 
               <div id='projects'></div>
             </div>
@@ -411,20 +421,22 @@
       </div>
     </div>
 
-    <footer class='bd-footer text-muted'>
-        <div class='container-fluid p-3 p-md-5'>
-          <p>
-            Copyright &copy;
+    <footer class='bd-footer'>
+        <div class='container-fluid p-3 p-md-4'>
+          <p class="mb-0">
+            <i class="bi bi-c-circle me-2"></i>
             <a
               href='https://www.techspace.co'
               target='_blank'
-            >Techspace Group Ltd</a>.
+            >Techspace Group Ltd</a>
+            <span class="mx-2">|</span>
+            <i class="bi bi-github me-1"></i>
             Code licensed
             <a
               rel='license noopener'
               href='https://github.com/techspaceco/coworking-tycoon/blob/master/README.md'
               target='_blank'
-            >MIT</a>.
+            >MIT</a>
           </p>
         </div>
       </footer>

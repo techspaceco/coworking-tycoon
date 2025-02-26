@@ -1,10 +1,30 @@
+:root {
+  --primary-color: #4284f5;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --warning-color: #f0ad4e;
+  --danger-color: #dc3545;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition-speed: 0.3s;
+}
+
+body {
+  background-color: #f5f7fa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
 #console {
   color: #fff;
-  background-color: #000;
+  background-color: #1e2024;
   padding: 1em;
-  font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;
+  font-family: "SF Mono", "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;
   height: 100px;
   font-size: 12px;
+  border-radius: 0.5rem;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 1rem;
 }
 
 .gauge-row {
@@ -87,34 +107,66 @@
 
 .finance-chart-container {
   text-align: center;
-  margin-bottom: 10px;
-  padding: 5px;
+  margin-bottom: 15px;
+  padding: 10px;
   background-color: rgba(248, 249, 250, 0.5);
-  border-radius: 3px;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--transition-speed);
+}
+
+.finance-chart-container:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 .finance-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 5px 10px;
+  gap: 12px 20px;
+  margin-top: 15px;
 }
 
 .finance-item {
-  font-size: 90%;
-  padding: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 95%;
+  padding: 10px;
+  background-color: var(--light-color);
+  border-radius: 8px;
+  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.finance-item:hover {
+  background-color: #e9ecef;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+.finance-item strong {
+  margin-bottom: 4px;
+  display: block;
+  color: var(--dark-color);
+}
+
+.finance-item span {
+  display: block;
+  font-weight: 500;
 }
 
 /* Cash Low Forecast Meter */
 .cash-forecast-meter {
   position: relative;
-  height: 6px;
+  height: 8px;
   background: #f0f0f0;
-  border-radius: 3px;
-  margin-top: 3px;
+  border-radius: 4px;
+  margin-top: 5px;
   overflow: hidden;
+}
+
+.cash-low-container {
+  overflow: visible;
 }
 
 .cash-forecast-meter-fill {
@@ -122,19 +174,29 @@
   top: 0;
   left: 0;
   height: 100%;
-  border-radius: 3px;
+  border-radius: 4px;
   transition: width 0.3s, background-color 0.3s;
 }
 
 .product-controls {
   display: flex;
   flex-direction: column;
+  gap: 15px;
 }
 
 .product-control-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--light-color);
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.product-control-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow);
 }
 
 .control-label {
@@ -146,7 +208,7 @@
 .control-buttons {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   min-width: 150px;
   justify-content: flex-end;
 }
@@ -159,13 +221,20 @@
 }
 
 .info-item {
-  padding: 5px;
+  padding: 10px;
   flex: 1;
+  background-color: var(--light-color);
+  border-radius: 6px;
+  transition: background-color var(--transition-speed);
+}
+
+.info-item:hover {
+  background-color: #e9ecef;
 }
 
 .level-group {
-  margin-bottom: 15px;
-  padding-top: 5px;
+  margin-bottom: 20px;
+  padding-top: 10px;
   border-top: 1px solid #f0f0f0;
 }
 
@@ -173,7 +242,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  background-color: var(--light-color);
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: box-shadow var(--transition-speed);
+}
+
+.level-controls:hover {
+  box-shadow: var(--card-shadow);
 }
 
 .level-label {
@@ -195,17 +272,34 @@
 
 .level-info {
   font-size: 90%;
-  margin-bottom: 5px;
-  margin-left: 5px;
+  margin-left: 15px;
+  padding: 5px;
+  color: var(--secondary-color);
 }
 
-/* Improve buttons for touch devices */
+/* Button styling */
 button {
   min-height: 44px;
   min-width: 44px;
   padding: 8px 16px;
   margin: 4px;
   touch-action: manipulation;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+  transition: filter var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+button:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  filter: brightness(0.95);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Increase tap target for small buttons */
@@ -220,39 +314,144 @@ button {
   font-size: 18px;
   padding: 10px 15px;
   margin: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Card styling */
 .card {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--transition-speed);
+  background-color: white;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
 .card-body {
-  padding: 0.75rem;
+  padding: 1.5rem;
 }
 
 .card-title {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  display: inline-block;
 }
 
 /* Make sure container allows for larger button size */
 @media (max-width: 768px) {
   .container-fluid {
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
   
   .card-body {
-    padding: 8px 6px;
+    padding: 12px 10px;
   }
   
   .card-title {
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
   }
   
   button {
-    margin: 2px;
+    margin: 3px;
   }
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-15px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+h4.card-title {
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Remove transform on button:active */
+
+/* Header styling */
+h3 {
+  color: var(--dark-color);
+  font-weight: 700;
+}
+
+/* Property and Project Cards */
+.property-card, .project-card {
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--transition-speed);
+  border-left: 4px solid var(--primary-color);
+}
+
+.property-card:hover, .project-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.property-card p, .project-card p {
+  margin-bottom: 0.5rem;
+}
+
+.project-title {
+  color: var(--dark-color);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.project-description {
+  color: var(--secondary-color);
+}
+
+/* Footer styling */
+.bd-footer {
+  background-color: var(--dark-color);
+  color: white;
+  padding: 20px 0;
+  margin-top: 30px;
+}
+
+.bd-footer a {
+  color: #bbdefb;
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+
+.bd-footer a:hover {
+  color: white;
+  text-decoration: underline;
 }

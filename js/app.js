@@ -166,7 +166,7 @@ var needsUiUpdate = true;
   }
 
   function updateUI() {
-    if (needsUiUpdate) {
+    if (needsUiUpdate && typeof InterfaceRepainter !== 'undefined') {
       InterfaceRepainter.call();
       needsUiUpdate = false;
     }
