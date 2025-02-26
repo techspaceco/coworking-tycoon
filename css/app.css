@@ -6,3 +6,50 @@
   height: 100px;
   font-size: 12px;
 }
+
+.gauge-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.gauge-container p {
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+/* Improve buttons for touch devices */
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  margin: 4px;
+  touch-action: manipulation;
+}
+
+/* Increase tap target for small buttons */
+#increase-workstation-price,
+#decrease-workstation-price,
+#increase-density,
+#decrease-density {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 18px;
+  padding: 10px 15px;
+  margin: 4px;
+}
+
+/* Make sure container allows for larger button size */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  
+  .card-body {
+    padding: 15px 10px;
+  }
+  
+  button {
+    margin: 2px;
+  }
+}

@@ -13,40 +13,56 @@ var needsUiUpdate = true;
   function init() {
     Logger.log('Welcome to Coworking Tycoon.');
 
+    // Helper function to add both mouse and touch events
+    function addButtonEvents(button, action) {
+      // For desktop
+      button.addEventListener('mousedown', function(e) {
+        action();
+        needsUiUpdate = true;
+      });
+      
+      // For mobile
+      button.addEventListener('touchstart', function(e) {
+        e.preventDefault(); // Prevent double events
+        button.style.opacity = '0.8'; // Visual feedback
+      });
+      
+      button.addEventListener('touchend', function(e) {
+        e.preventDefault(); // Prevent double events
+        button.style.opacity = '1'; // Restore opacity
+        action();
+        needsUiUpdate = true;
+      });
+    }
+
     var marketingLevelUpButton = document.getElementById('marketing-level-up-button');
-    marketingLevelUpButton.addEventListener('mousedown', function () {
+    addButtonEvents(marketingLevelUpButton, function() {
       AppStore.incrementMarketingLevel();
-      needsUiUpdate = true;
     });
 
     var salesLevelUpButton = document.getElementById('sales-level-up-button');
-    salesLevelUpButton.addEventListener('mousedown', function () {
+    addButtonEvents(salesLevelUpButton, function() {
       AppStore.incrementSalesLevel();
-      needsUiUpdate = true;
     });
 
     var decreaseWorkstationPriceButton = document.getElementById('decrease-workstation-price');
-    decreaseWorkstationPriceButton.addEventListener('mousedown', function () {
+    addButtonEvents(decreaseWorkstationPriceButton, function() {
       AppStore.decrementWorkstationPrice();
-      needsUiUpdate = true;
     });
 
     var increaseWorkstationPriceButton = document.getElementById('increase-workstation-price');
-    increaseWorkstationPriceButton.addEventListener('mousedown', function () {
+    addButtonEvents(increaseWorkstationPriceButton, function() {
       AppStore.incrementWorkstationPrice();
-      needsUiUpdate = true;
     });
 
     var decreaseDensityButton = document.getElementById('decrease-density');
-    decreaseDensityButton.addEventListener('mousedown', function () {
+    addButtonEvents(decreaseDensityButton, function() {
       AppStore.decrementDensity();
-      needsUiUpdate = true;
     });
 
     var increaseDensityButton = document.getElementById('increase-density');
-    increaseDensityButton.addEventListener('mousedown', function () {
+    addButtonEvents(increaseDensityButton, function() {
       AppStore.incrementDensity();
-      needsUiUpdate = true;
     });
   }
 

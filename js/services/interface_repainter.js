@@ -4,6 +4,8 @@ var InterfaceRepainter;
   var mostRecentDealId;
   var cachedDealIds = [];
   var cachedProjectIds = [];
+  var occupancyGauge;
+  var churnGauge;
   
   // Helper to update text content and class only when changed
   function updateElement(id, content, className) {
@@ -15,9 +17,52 @@ var InterfaceRepainter;
       el.className = className;
     }
   }
+  
+  // Initialize gauges
+  function initGauges() {
+    if (!occupancyGauge) {
+      var occupancyCanvas = document.getElementById('occupancy-gauge');
+      if (occupancyCanvas) {
+        occupancyGauge = new SimpleGauge({
+          canvas: occupancyCanvas,
+          minValue: 0,
+          maxValue: 100,
+          value: 0,
+          label: 'Occupancy',
+          colorRanges: [
+            { min: 0, max: 33, color: '#dc3545' },  // Red (low occupancy is bad)
+            { min: 33, max: 66, color: '#ffc107' }, // Yellow
+            { min: 66, max: 100, color: '#28a745' } // Green (high occupancy is good)
+          ]
+        });
+      }
+    }
+    
+    if (!churnGauge) {
+      var churnCanvas = document.getElementById('churn-gauge');
+      if (churnCanvas) {
+        churnGauge = new SimpleGauge({
+          canvas: churnCanvas,
+          minValue: 0,
+          maxValue: 100,
+          value: 0,
+          label: 'Churn Rate',
+          invertColors: true,
+          colorRanges: [
+            { min: 0, max: 33, color: '#28a745' },  // Green (low churn is good)
+            { min: 33, max: 66, color: '#ffc107' }, // Yellow
+            { min: 66, max: 100, color: '#dc3545' } // Red (high churn is bad)
+          ]
+        });
+      }
+    }
+  }
 
   InterfaceRepainter = {
     call: function () {
+      // Initialize gauges if not already done
+      initGauges();
+      
       var mis = AppStore.managementInformationSystem();
       var dm = mis.decorate();
       var bankBalance = AppStore.bankAccount().balance();
@@ -52,6 +97,21 @@ var InterfaceRepainter;
       // Community
       updateElement('occupancy', dm.occupancy());
       updateElement('monthly-churn-rate', dm.monthlyChurnRate());
+      
+      // Update gauges
+      if (occupancyGauge) {
+        // Extract numerical value from occupancy percentage
+        var occupancyValue = parseInt(mis.occupancy() * 100);
+        occupancyGauge.updateValue(occupancyValue);
+      }
+      
+      if (churnGauge) {
+        // Extract numerical value from churn rate percentage
+        var churnValue = parseInt(mis.monthlyChurnRate() * 100);
+        // Cap at 100% for display
+        churnValue = Math.min(churnValue, 100);
+        churnGauge.updateValue(churnValue);
+      }
 
       // Sales
       updateElement('sales-level', Util.numberWithCommas(AppStore.salesLevel()));
@@ -262,10 +322,38 @@ var InterfaceRepainter;
           var button = document.getElementById(buttonId);
           
           if (button && !button.disabled) {
-            button.addEventListener('click', function() {
+            // Function to execute when button is activated
+            function purchaseLease(e) {
+              // Prevent default and stop propagation for reliability
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              
               console.log("Purchasing property: " + lease.decorate().area());
               LeasePurchaser.call(deal);
-            });
+              
+              return false;
+            }
+            
+            // Remove any existing listeners to prevent duplicates
+            var newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add click handler for desktop
+            newButton.onclick = purchaseLease;
+            
+            // Add touch handlers for mobile
+            newButton.addEventListener('touchstart', function(e) {
+              // Add active state styling
+              newButton.style.opacity = '0.8';
+            }, false);
+            
+            newButton.addEventListener('touchend', function(e) {
+              // Remove active state styling
+              newButton.style.opacity = '1';
+              purchaseLease(e);
+            }, false);
           }
         });
       }
@@ -340,11 +428,13 @@ var InterfaceRepainter;
             var newButton = button.cloneNode(true);
             button.parentNode.replaceChild(newButton, button);
             
-            // Add a single, reliable click handler
-            newButton.onclick = function(e) {
+            // Function to execute when button is activated
+            function executeProject(e) {
               // Prevent default and stop propagation for reliability
-              e.preventDefault();
-              e.stopPropagation();
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
               
               console.log("Running project: " + project.title());
               
@@ -359,7 +449,22 @@ var InterfaceRepainter;
               }, 50);
               
               return false;
-            };
+            }
+            
+            // Add click handler for desktop
+            newButton.onclick = executeProject;
+            
+            // Add touch handlers for mobile
+            newButton.addEventListener('touchstart', function(e) {
+              // Add active state styling
+              newButton.style.opacity = '0.8';
+            }, false);
+            
+            newButton.addEventListener('touchend', function(e) {
+              // Remove active state styling
+              newButton.style.opacity = '1';
+              executeProject(e);
+            }, false);
           }
         });
       }

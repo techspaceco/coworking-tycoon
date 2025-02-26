@@ -2,7 +2,7 @@
 <html lang='en'>
   <head>
     <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
 
     <title>Coworking Tycoon. Techspace: The Game. A coworking world-domination simulator.</title>
 
@@ -15,6 +15,7 @@
     <link href='./css/app.css' rel='stylesheet' type='text/css'>
     <script src='./js/lib/logger.js'></script>
     <script src='./js/lib/util.js'></script>
+    <script src='./js/lib/charts/gauge.js'></script>
     <script src='./js/models/bank_account.js'></script>
     <script src='./js/models/lead.js'></script>
     <script src='./js/models/lease.js'></script>
@@ -151,15 +152,15 @@
             <div class='card-body'>
               <h4 class='card-title'>Community</h4>
 
-              <p>
-                Occupancy:
-                <span id='occupancy'></span>
-              </p>
+              <div class="gauge-container">
+                <canvas id="occupancy-gauge" width="150" height="120"></canvas>
+                <span id='occupancy' style="display: none;"></span>
+              </div>
 
-              <p>
-                Monthly churn:
-                <span id='monthly-churn-rate'></span>
-              </p>
+              <div class="gauge-container">
+                <canvas id="churn-gauge" width="150" height="120"></canvas>
+                <span id='monthly-churn-rate' style="display: none;"></span>
+              </div>
             </div>
           </div>
         
