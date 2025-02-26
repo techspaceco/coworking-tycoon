@@ -33,6 +33,77 @@ var ManagementInformationSystem;
     var npsFeedback = ""; // Current top issue affecting NPS
     var communityEventsPerMember = 0; // Community events budget per member per month (in £)
     
+    // Staff-related benefits
+    function getStaffBenefits() {
+      if (typeof StaffStore !== 'undefined') {
+        return StaffStore.getStaffBenefits();
+      }
+      return {
+        npsBoost: 0,
+        churnReduction: 0,
+        eventBudgetDiscount: 0,
+        overheadReduction: 0,
+        maintenanceCostReduction: 0,
+        spaceUtilizationBoost: 0,
+        salesBoost: 0,
+        conversionRateBoost: 0,
+        premiumPricingBoost: 0,
+        leadBoost: 0,
+        brandValueBoost: 0,
+        marketingEfficiencyBoost: 0,
+        memberSatisfactionBoost: 0,
+        operationalEfficiencyBoost: 0,
+        techSupportBoost: 0
+      };
+    }
+    
+    // Apply staff benefits to a value based on benefit type
+    function applyStaffBenefit(value, benefitType) {
+      var benefits = getStaffBenefits();
+      
+      if (!benefits[benefitType]) {
+        return value; // No benefit of this type
+      }
+      
+      switch (benefitType) {
+        // Additive benefits (direct addition to values)
+        case 'npsBoost':
+          return value + benefits[benefitType];
+        
+        // Multiplicative benefits (percentage changes)
+        case 'churnReduction':
+          return value * (1 - benefits[benefitType]);
+        case 'eventBudgetDiscount':
+          return value * (1 - benefits[benefitType]);
+        case 'overheadReduction':
+          return value * (1 - benefits[benefitType]);
+        case 'maintenanceCostReduction':
+          return value * (1 - benefits[benefitType]);
+        case 'salesBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'conversionRateBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'premiumPricingBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'leadBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'brandValueBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'marketingEfficiencyBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'spaceUtilizationBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'memberSatisfactionBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'operationalEfficiencyBoost':
+          return value * (1 + benefits[benefitType]);
+        case 'techSupportBoost':
+          return value * (1 + benefits[benefitType]);
+        default:
+          return value;
+      }
+    }
+    
     // Store financial history - limited to last 12 data points
     var financialHistory = {
       revenue: [],
@@ -234,6 +305,16 @@ var ManagementInformationSystem;
         this.monthlyStaffCost()
       );
       
+      // Apply overhead reduction from staff benefits
+      var staffBenefits = getStaffBenefits();
+      var overheadReduction = staffBenefits.overheadReduction || 0;
+      
+      // Apply the overhead reduction (capped at 50%)
+      cache.monthlyOverheads = Math.round(cache.monthlyOverheads * (1 - Math.min(overheadReduction, 0.5)));
+      
+      // Apply the event-related overhead multiplier
+      cache.monthlyOverheads = Math.round(cache.monthlyOverheads * overheadMultiplier);
+      
       return cache.monthlyOverheads;
     };
 
@@ -255,19 +336,47 @@ var ManagementInformationSystem;
       // This gives a proper percentage relative to current membership size
       var churnRate = monthlyChurnVolume / (totalMembers + monthlyChurnVolume);
       
+      // Apply event-based churn multiplier
+      churnRate = churnRate * churnMultiplier;
+      
+      // Apply staff churn reduction benefit
+      var staffBenefits = getStaffBenefits();
+      var churnReduction = staffBenefits.churnReduction || 0;
+      
+      // Apply the churn reduction (capped at 90% reduction)
+      churnRate = churnRate * (1 - Math.min(churnReduction, 0.9));
+      
       console.log("Monthly churn calculation: " + monthlyChurnVolume + " churned / " + 
                   "(" + totalMembers + " current members + " + monthlyChurnVolume + 
-                  " churned members) = " + churnRate);
+                  " churned members) = " + churnRate + 
+                  " (with staff reduction: " + (churnReduction * 100) + "%)");
       
       return churnRate;
     };
 
     this.monthlyLeadVolume = function () {
-      return monthlyLeadVolume;
+      // Apply lead multiplier from events
+      var adjustedLeadVolume = monthlyLeadVolume * leadMultiplier;
+      
+      // Apply lead boost from staff
+      var staffBenefits = getStaffBenefits();
+      var leadBoost = staffBenefits.leadBoost || 0;
+      
+      // Apply the lead boost (add the percentage increase)
+      adjustedLeadVolume = Math.round(adjustedLeadVolume * (1 + leadBoost));
+      
+      return adjustedLeadVolume;
     };
 
     this.monthlySalesVolume = function () {
-      return monthlySalesVolume;
+      // Apply sales boost from staff
+      var staffBenefits = getStaffBenefits();
+      var salesBoost = staffBenefits.salesBoost || 0;
+      
+      // Apply the sales boost (add the percentage increase)
+      var adjustedSalesVolume = Math.round(monthlySalesVolume * (1 + salesBoost));
+      
+      return adjustedSalesVolume;
     };
 
     this.grossMargin = function () {
@@ -380,16 +489,25 @@ var ManagementInformationSystem;
 
     this.monthlyStaffCost = function () {
       if (cache.monthlyOfficeManagerCost === null) {
-        cache.monthlyOfficeManagerCost = ProjectStore.isProjectCompleted("Hire Office Manager") ? 4167 : 0; // £50,000 per year = £4,167 per month
-        
-        // Add cost for Sales Manager if hired
-        if (ProjectStore.isProjectCompleted("Hire Sales Manager")) {
-          cache.monthlyOfficeManagerCost += 5000; // £60,000 per year = £5,000 per month
+        // First check if StaffStore exists and use it for staff costs
+        if (typeof StaffStore !== 'undefined' && typeof StaffStore.getMonthlyStaffCost === 'function') {
+          cache.monthlyOfficeManagerCost = StaffStore.getMonthlyStaffCost();
         }
-        
-        // Add cost for Marketing Manager if hired
-        if (ProjectStore.isProjectCompleted("Hire Marketing Manager")) {
-          cache.monthlyOfficeManagerCost += 5000; // £60,000 per year = £5,000 per month
+        // Legacy fallback for compatibility
+        else if (ProjectStore.isProjectCompleted("Hiring Plan")) {
+          cache.monthlyOfficeManagerCost = ProjectStore.isProjectCompleted("Hire Office Manager") ? 4167 : 0; // £50,000 per year = £4,167 per month
+          
+          // Add cost for Sales Manager if hired
+          if (ProjectStore.isProjectCompleted("Hire Sales Manager")) {
+            cache.monthlyOfficeManagerCost += 5000; // £60,000 per year = £5,000 per month
+          }
+          
+          // Add cost for Marketing Manager if hired
+          if (ProjectStore.isProjectCompleted("Hire Marketing Manager")) {
+            cache.monthlyOfficeManagerCost += 5000; // £60,000 per year = £5,000 per month
+          }
+        } else {
+          cache.monthlyOfficeManagerCost = 0; // No managers without Hiring Plan
         }
       }
       
@@ -398,17 +516,32 @@ var ManagementInformationSystem;
           // Calculate cost based on number of members and per-member budget
           var memberCount = this.memberUserCount();
           
-          // Calculate total monthly cost based on per-member amount
-          cache.monthlyCommunityEventsCost = Math.round(memberCount * communityEventsPerMember);
+          // Apply event budget discount from staff
+          var staffBenefits = getStaffBenefits();
+          var eventBudgetDiscount = staffBenefits.eventBudgetDiscount || 0;
+          
+          // Calculate total monthly cost based on per-member amount with discount
+          var baseCost = memberCount * communityEventsPerMember;
+          cache.monthlyCommunityEventsCost = Math.round(baseCost * (1 - Math.min(eventBudgetDiscount, 0.5)));
         } else {
           cache.monthlyCommunityEventsCost = 0;
         }
       }
       
-      // Base staff cost plus any office manager costs and community events costs
-      return parseInt(this.staffRate() * totalArea / 12) + 
+      // Base staff cost from space area and rates
+      var baseStaffCost = parseInt(this.staffRate() * totalArea / 12);
+      
+      // Add regular staff costs managed through the StaffStore
+      var staffStoreCost = 0;
+      if (typeof StaffStore !== 'undefined') {
+        staffStoreCost = StaffStore.getMonthlyStaffCost();
+      }
+      
+      // Base staff cost plus office manager costs, community events costs, and staff store costs
+      return baseStaffCost + 
              cache.monthlyOfficeManagerCost + 
-             cache.monthlyCommunityEventsCost;
+             cache.monthlyCommunityEventsCost +
+             staffStoreCost;
     };
 
     this.staffRate = function () {
@@ -637,6 +770,10 @@ var ManagementInformationSystem;
       
       // Apply the event boost
       totalScore += npsBoost;
+      
+      // Apply staff NPS boost
+      var staffBenefits = getStaffBenefits();
+      totalScore += staffBenefits.npsBoost || 0;
       
       // Clamp between 0 and 100
       totalScore = Math.max(0, Math.min(100, totalScore));

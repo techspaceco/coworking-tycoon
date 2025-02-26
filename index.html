@@ -18,6 +18,7 @@
     <script src='./js/lib/util.js'></script>
     <script src='./js/lib/charts/gauge.js'></script>
     <script src='./js/lib/charts/line-chart.js'></script>
+    <script src='./js/lib/confetti.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script src='./js/stores/progression_store.js'></script>
     <script src='./js/stores/event_store.js'></script>
@@ -29,10 +30,12 @@
     <script src='./js/models/member_company.js'></script>
     <script src='./js/models/project.js'></script>
     <script src='./js/models/space.js'></script>
+    <script src='./js/models/staff_member.js'></script>
     <script src='./js/decorators/bank_account_decorator.js'></script>
     <script src='./js/decorators/lease_decorator.js'></script>
     <script src='./js/decorators/management_information_system_decorator.js'></script>
     <script src='./js/decorators/project_decorator.js'></script>
+    <script src='./js/decorators/staff_decorator.js'></script>
     <script src='./js/services/daily_churn.js'></script>
     <script src='./js/services/interface_repainter.js'></script>
     <script src='./js/services/lead_generator.js'></script>
@@ -45,22 +48,35 @@
     <script src='./js/stores/app_store.js'></script>
     <script src='./js/stores/project_store.js'></script>
     <script src='./js/stores/real_estate_market_store.js'></script>
+    <script src='./js/stores/staff_store.js'></script>
     <script src='./js/app.js'></script>
   </head>
   <body>
     <div class="container-fluid mt-3">
-      <div id='console'></div>
-      
     <!-- Event notification toast -->
     <div id="event-notification" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header">
         <i id="event-icon" class="bi bi-info-circle-fill me-2"></i>
         <strong id="event-title" class="me-auto">Event Title</strong>
-        <small id="event-time">just now</small>
         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
       <div id="event-description" class="toast-body">
         Event description goes here.
+      </div>
+    </div>
+    
+    <!-- Welcome overlay -->
+    <div id="welcome-overlay">
+      <div class="welcome-content">
+        <h2><i class="bi bi-buildings-fill me-2"></i>Welcome to Coworking Tycoon!</h2>
+        <p>Build your coworking empire from the ground up!</p>
+        <div class="welcome-instructions">
+          <p>Start by leasing your first property in the Real Estate Market shown on the left.</p>
+          <p>The game clock will begin once you lease your first property.</p>
+        </div>
+        <button id="welcome-close-btn" class="btn btn-primary">
+          <i class="bi bi-check-circle-fill me-2"></i>Let's Start
+        </button>
       </div>
     </div>
     </div>
@@ -134,49 +150,37 @@
               </div>
             </div>
           </div>
-
-          <div class='card mb-3 feature-section' data-feature="product">
+          
+          <!-- Staff panel - hidden until we're ready to implement it fully -->
+          <!--
+          <div class='card mb-3 feature-section' data-feature="staffManagement" style="display: none;">
             <div class='card-body'>
-              <h4 class='card-title'><i class="bi bi-gear-fill me-2"></i>Product</h4>
-
-              <div class="product-controls">
-                <div class="level-group">
-                  <div class="product-control-item">
-                    <div class="control-label"><strong><i class="bi bi-currency-dollar me-1"></i>Price:</strong></div>
-                    <div class="control-buttons">
-                      <button id='decrease-workstation-price'><i class="bi bi-dash-lg"></i></button>
-                      <button id='increase-workstation-price'><i class="bi bi-plus-lg"></i></button>
-                      <span id='workstation-price'></span>
-                    </div>
-                  </div>
-                </div>
+              <h4 class='card-title'><i class="bi bi-people-fill me-2"></i>Staff</h4>
                 
-                <div class="level-group">
-                  <div class="product-control-item">
-                    <div class="control-label"><strong><i class="bi bi-people me-1"></i>Density:</strong></div>
-                    <div class="control-buttons">
-                      <button id='decrease-density'><i class="bi bi-dash-lg"></i></button>
-                      <button id='increase-density'><i class="bi bi-plus-lg"></i></button>
-                      <span id='density'></span>
-                    </div>
-                  </div>
+              <div class="staff-totals">
+                <div class="staff-totals-title">Staff Costs</div>
+                <div class="staff-monthly-cost" id="staff-monthly-cost">£0/mo</div>
+              </div>
+              
+              <div class="staff-management-tabs mt-3">
+                <div class="staff-tab active" data-tab="staff">Current Staff</div>
+                <div class="staff-tab" data-tab="recruitment">Recruitment</div>
+              </div>
+              
+              <div class="staff-tab-content active" data-tab-content="staff">
+                <div id="staff-container">
+                  <div class="text-center p-3">No staff hired yet. Open positions in the Recruitment tab.</div>
                 </div>
-                
-                <div class="level-group" id="community-events-outer-container">
-                  <div id="community-events-container" class="feature-section" data-feature="communityEvents" style="display: none;">
-                    <div class="product-control-item">
-                      <div class="control-label"><strong><i class="bi bi-calendar-event me-1"></i>Events Budget:</strong></div>
-                      <div class="control-buttons">
-                        <button id="decrease-events-budget"><i class="bi bi-dash-lg"></i></button>
-                        <button id="increase-events-budget"><i class="bi bi-plus-lg"></i></button>
-                        <span id="events-budget"></span>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+              
+              <div class="staff-tab-content" data-tab-content="recruitment">
+                <div id="recruitment-container">
+                  <div class="text-center p-3">No positions available right now. Positions unlock as you progress in the game.</div>
                 </div>
               </div>
             </div>
           </div>
+          -->
 
           <div class='card mb-3 feature-section' data-feature="development">
             <div class='card-body'>
@@ -421,6 +425,49 @@
               </script>
             </div>
           </div>
+          
+          <div class='card mb-3 feature-section' data-feature="product">
+            <div class='card-body'>
+              <h4 class='card-title'><i class="bi bi-gear-fill me-2"></i>Product</h4>
+
+              <div class="product-controls">
+                <div class="level-group">
+                  <div class="product-control-item">
+                    <div class="control-label"><strong><i class="bi bi-cash-coin me-1"></i>Price:</strong></div>
+                    <div class="control-buttons">
+                      <button id='decrease-workstation-price'><i class="bi bi-dash-lg"></i></button>
+                      <button id='increase-workstation-price'><i class="bi bi-plus-lg"></i></button>
+                      <span id='workstation-price'></span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="level-group">
+                  <div class="product-control-item">
+                    <div class="control-label"><strong><i class="bi bi-people me-1"></i>Density:</strong></div>
+                    <div class="control-buttons">
+                      <button id='decrease-density'><i class="bi bi-dash-lg"></i></button>
+                      <button id='increase-density'><i class="bi bi-plus-lg"></i></button>
+                      <span id='density'></span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="level-group" id="community-events-outer-container">
+                  <div id="community-events-container" class="feature-section" data-feature="communityEvents" style="display: none;">
+                    <div class="product-control-item">
+                      <div class="control-label"><strong><i class="bi bi-calendar-event me-1"></i>Events Budget:</strong></div>
+                      <div class="control-buttons">
+                        <button id="decrease-events-budget"><i class="bi bi-dash-lg"></i></button>
+                        <button id="increase-events-budget"><i class="bi bi-plus-lg"></i></button>
+                        <span id="events-budget"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class='col'>
@@ -434,6 +481,137 @@
         </div>
       </div>
     </div>
+    
+    <script>
+      // Initialize staff management tabs
+      document.addEventListener('DOMContentLoaded', function() {
+        // Initialize StaffStore if it exists
+        if (typeof StaffStore !== 'undefined' && StaffStore.init) {
+          StaffStore.init();
+        }
+        
+        // Set up tabs functionality
+        var tabs = document.querySelectorAll('.staff-tab');
+        tabs.forEach(function(tab) {
+          tab.addEventListener('click', function() {
+            // Remove active class from all tabs
+            tabs.forEach(function(t) {
+              t.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Hide all tab content
+            var tabContents = document.querySelectorAll('.staff-tab-content');
+            tabContents.forEach(function(content) {
+              content.classList.remove('active');
+            });
+            
+            // Show clicked tab content
+            var tabName = this.getAttribute('data-tab');
+            var activeContent = document.querySelector('.staff-tab-content[data-tab-content="' + tabName + '"]');
+            if (activeContent) {
+              activeContent.classList.add('active');
+            }
+            
+            // Render the active tab content
+            if (typeof StaffDecorator !== 'undefined') {
+              if (tabName === 'staff') {
+                StaffDecorator.renderStaff('staff-container');
+              } else if (tabName === 'recruitment') {
+                StaffDecorator.renderRecruitment('recruitment-container');
+              }
+            }
+          });
+        });
+        
+        // Initial rendering if StaffDecorator exists
+        if (typeof StaffDecorator !== 'undefined') {
+          // Update the monthly cost display
+          var costElement = document.getElementById('staff-monthly-cost');
+          if (costElement && typeof StaffDecorator.getMonthlyStaffCostFormatted === 'function') {
+            costElement.textContent = StaffDecorator.getMonthlyStaffCostFormatted();
+          }
+          
+          // Render the initial staff view
+          StaffDecorator.renderStaff('staff-container');
+        }
+      });
+      
+      // Function to unlock staff management permanently when a certain project completes
+      window.unlockStaffManagement = function() {
+        console.log("PERMANENT: Unlocking Staff Management");
+        
+        // Direct manipulation to ensure feature visibility
+        var staffPanel = document.querySelector('.card[data-feature="staffManagement"]');
+        if (staffPanel) {
+          // Remove the feature-section class to bypass the feature visibility system
+          staffPanel.classList.remove('feature-section');
+          staffPanel.removeAttribute('data-feature');
+          
+          // Force display
+          staffPanel.style.cssText = "display: block !important";
+          
+          console.log("Staff Management now permanently visible");
+        }
+        
+        // Also set the ProgressionStore flag for visibility
+        if (typeof ProgressionStore !== 'undefined' && ProgressionStore.features) {
+          ProgressionStore.features.staffManagement = { 
+            visible: true,
+            unlocked: true
+          };
+        }
+        
+        // Force UI refresh
+        if (typeof needsUiUpdate !== 'undefined') {
+          needsUiUpdate = true;
+        }
+        
+        // Check existing projects and create staff members if needed
+        if (typeof StaffStore !== 'undefined' && typeof StaffStore.createStaffFromProject === 'function' && 
+            typeof ProjectStore !== 'undefined' && typeof ProjectStore.isProjectCompleted === 'function') {
+            
+          // Check for each staff project and create staff if project is completed
+          var staffProjects = ["Hire Office Manager", "Hire Sales Manager", "Hire Marketing Manager"];
+          
+          staffProjects.forEach(function(projectTitle) {
+            if (ProjectStore.isProjectCompleted(projectTitle)) {
+              console.log("Creating staff for already completed project: " + projectTitle);
+              StaffStore.createStaffFromProject(projectTitle);
+            }
+          });
+        }
+        
+        // Initial rendering of the staff management UI
+        if (typeof StaffDecorator !== 'undefined') {
+          setTimeout(function() {
+            if (typeof StaffDecorator.renderStaff === 'function') {
+              StaffDecorator.renderStaff('staff-container');
+            }
+            if (typeof StaffDecorator.renderRecruitment === 'function') {
+              StaffDecorator.renderRecruitment('recruitment-container');
+            }
+          }, 100);
+        }
+      };
+      
+      // Check project completion status periodically
+      var staffProjectCheckInterval = setInterval(function() {
+        try {
+          if (typeof ProjectStore !== 'undefined' && ProjectStore.isProjectCompleted) {
+            // Check Staff Management project
+            if (ProjectStore.isProjectCompleted("Hiring Plan")) {
+              window.unlockStaffManagement();
+              clearInterval(staffProjectCheckInterval); // Clear once unlocked
+            }
+          }
+        } catch (err) {
+          console.error("Error in staff project check interval:", err);
+        }
+      }, 500); // Check every 500ms
+    </script>
 
     <footer class='bd-footer'>
         <div class='container-fluid p-3 p-md-4'>

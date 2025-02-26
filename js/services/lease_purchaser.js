@@ -25,5 +25,10 @@ var LeasePurchaser = {
     if (lease.area() > mis.maxSpaceArea()) {
       mis.setMaxSpaceArea(lease.area());
     }
+    
+    // Start the game clock if this is the first property
+    if (typeof window.startGameClock === 'function') {
+      window.startGameClock();
+    }
   }
 };

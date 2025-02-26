@@ -5,13 +5,77 @@ var needsUiUpdate = true;
   var date = AppStore.date();
   var currentQuarter = Util.getQuarter(date);
   var currentMonth = date.getMonth();
-  var gameInterval;
+  var gameInterval = null;
   var uiInterval;
   var gameSpeed = 100; // ms between game ticks
   var uiRefreshRate = 200; // ms between UI updates
+  var gameStarted = false; // Track if the game clock has started
+  
+  // Global toast configuration
+  window.toastDuration = 8000; // 8 seconds duration (was typically 5s default)
+  
+  // Function to show and handle the welcome overlay
+  function showWelcomeOverlay() {
+    // Get overlay element
+    var overlay = document.getElementById('welcome-overlay');
+    if (!overlay) return;
+    
+    // Check if there are already spaces (on page reload)
+    if (AppStore.spaces().length > 0) {
+      // Skip showing the overlay if already have spaces
+      return;
+    }
+    
+    // Make overlay visible with animation
+    setTimeout(function() {
+      overlay.classList.add('visible');
+    }, 500); // Small delay for better visual effect after page load
+    
+    // Add event listener to close button
+    var closeBtn = document.getElementById('welcome-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        // Hide the overlay with animation
+        overlay.classList.remove('visible');
+        // Remove completely after animation completes
+        setTimeout(function() {
+          overlay.style.display = 'none';
+        }, 500);
+      });
+    }
+  }
+  
+  // Global helper function to show toasts with consistent configuration
+  window.showToast = function(title, message, iconClass, autohide = true) {
+    try {
+      var toast = document.getElementById('event-notification');
+      var toastTitle = document.getElementById('event-title');
+      var toastDesc = document.getElementById('event-description');
+      var toastIcon = document.getElementById('event-icon');
+      
+      if (toast && toastTitle && toastDesc) {
+        toastTitle.textContent = title;
+        toastDesc.textContent = message;
+        toastIcon.className = iconClass || "bi bi-info-circle-fill me-2";
+        
+        // Create toast with longer duration
+        var bsToast = new bootstrap.Toast(toast, { 
+          autohide: autohide,
+          delay: window.toastDuration 
+        });
+        bsToast.show();
+        
+        return bsToast; // Return toast instance in case caller needs it
+      }
+    } catch (err) {
+      console.error("Error showing toast notification:", err);
+    }
+    return null;
+  };
 
   function init() {
-    Logger.log('Welcome to Coworking Tycoon! Start by acquiring your first property in the Real Estate Market.');
+    // Show welcome overlay instead of toast
+    showWelcomeOverlay();
     
     // Initialize progression if available
     if (typeof ProgressionStore !== 'undefined') {
@@ -181,6 +245,25 @@ var needsUiUpdate = true;
       daysSinceNpsUpdate = 0;
     }
     
+    // Check staff training completions
+    if (typeof StaffStore !== 'undefined' && typeof StaffStore.checkTrainingCompletions === 'function') {
+      var completedTrainings = StaffStore.checkTrainingCompletions();
+      if (completedTrainings.length > 0) {
+        console.log("Staff training completed:", completedTrainings);
+        needsUiUpdate = true;
+        
+        // Show notification for completed training
+        if (completedTrainings.length > 0) {
+          var staff = completedTrainings[0]; // Just show for the first one if multiple
+          window.showToast(
+            "Training Complete",
+            staff.name + " has completed their training.",
+            "bi bi-mortarboard-fill me-2"
+          );
+        }
+      }
+    }
+    
     // Check progression criteria
     if (typeof ProgressionStore !== 'undefined') {
       if (ProgressionStore.updateProgression()) {
@@ -213,8 +296,47 @@ var needsUiUpdate = true;
       clearInterval(gameInterval);
       clearInterval(uiInterval);
       
-      // Display game over alert
-      alert('GAME OVER: You went bust! Your bank account went over the limit.');
+      // Display game over toast notification
+      try {
+        var toast = document.getElementById('event-notification');
+        var toastTitle = document.getElementById('event-title');
+        var toastDesc = document.getElementById('event-description');
+        var toastIcon = document.getElementById('event-icon');
+        
+        if (toast && toastTitle && toastDesc) {
+          // Set the title and icon
+          toastTitle.textContent = "GAME OVER";
+          toastIcon.className = "bi bi-x-circle-fill me-2";
+          
+          // Create a div for the description and restart button
+          var gameOverContent = document.createElement('div');
+          gameOverContent.innerHTML = `
+            <p>You went bust! Your bank account went over the limit.</p>
+            <button id="restart-game-button" class="btn btn-primary mt-2">
+              <i class="bi bi-arrow-repeat me-2"></i>Restart Game
+            </button>
+          `;
+          
+          // Clear and append
+          toastDesc.innerHTML = '';
+          toastDesc.appendChild(gameOverContent);
+          
+          // Add event listener to restart button
+          var restartButton = document.getElementById('restart-game-button');
+          if (restartButton) {
+            restartButton.addEventListener('click', function() {
+              console.log("Restarting game...");
+              window.location.reload();
+            });
+          }
+          
+          // Show the toast with no auto-hide
+          var bsToast = new bootstrap.Toast(toast, { autohide: false });
+          bsToast.show();
+        }
+      } catch (err) {
+        console.error("Error showing game over notification:", err);
+      }
       return;
     }
 
@@ -248,7 +370,26 @@ var needsUiUpdate = true;
     handleDayChange();
   }
 
-  setTimeout(init, 0);
-  gameInterval = setInterval(gameLoop, gameSpeed);
+  // Function to start the game clock
+  window.startGameClock = function() {
+    if (!gameStarted) {
+      gameStarted = true;
+      gameInterval = setInterval(gameLoop, gameSpeed);
+      console.log("Game clock started!");
+      window.showToast("Game Started", "Time is now passing. Good luck with your coworking empire!", "bi bi-play-fill me-2");
+    }
+  };
+  
+  // Initialize the UI, but don't start the game loop yet
+  setTimeout(function() {
+    init();
+    
+    // Check if the player already has spaces (e.g., on reload)
+    if (AppStore.spaces().length > 0) {
+      // Start the game clock automatically
+      window.startGameClock();
+    }
+  }, 0);
+  
   uiInterval = setInterval(updateUI, uiRefreshRate);
 })();

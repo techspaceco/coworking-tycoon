@@ -48,6 +48,9 @@ var ProgressionStore;
     salesControls: { unlockStage: STAGE.INTRO, visible: false }, // Hidden until Sales Manager project completed
     marketingControls: { unlockStage: STAGE.INTRO, visible: false }, // Hidden until Marketing Manager project completed
     
+    // Staff Management panel
+    staffManagement: { unlockStage: STAGE.GROWING, visible: false } // Hidden until Staff Management project completed
+    
     // Projects panel
     projects: { unlockStage: STAGE.INTRO, visible: true }
   };
@@ -66,8 +69,8 @@ var ProgressionStore;
   // Projects to unlock at each stage
   var stageProjects = {
     [STAGE.INTRO]: [],
-    [STAGE.FIRST_SPACE]: ["Improve Amenities", "Run Community Events"],
-    [STAGE.GROWING]: ["Hire Office Manager", "Hire Sales Manager", "Hire Marketing Manager"],
+    [STAGE.FIRST_SPACE]: ["Run Community Events", "Improve Amenities"], // Hiring Plan disabled
+    [STAGE.GROWING]: ["Hire Sales Manager", "Hire Marketing Manager"], // Hire Office Manager disabled
     [STAGE.EXPANDING]: ["Raise Series A"],
     [STAGE.ESTABLISHED]: ["Raise Series B"],
     [STAGE.SCALING]: ["Raise Series C"],
@@ -149,15 +152,17 @@ var ProgressionStore;
           // NPS gauge is unlocked by Community Events project
           continue; // Skip - handled by project completion
         } else if (featureKey === 'salesControls') {
-          // Sales controls are unlocked by Sales Manager project
+          // Sales controls are unlocked by Sales Manager project AND Hiring Plan
           feature.visible = typeof ProjectStore !== 'undefined' && 
                             ProjectStore.isProjectCompleted && 
-                            ProjectStore.isProjectCompleted("Hire Sales Manager");
+                            ProjectStore.isProjectCompleted("Hire Sales Manager") &&
+                            ProjectStore.isProjectCompleted("Hiring Plan");
         } else if (featureKey === 'marketingControls') {
-          // Marketing controls are unlocked by Marketing Manager project
+          // Marketing controls are unlocked by Marketing Manager project AND Hiring Plan
           feature.visible = typeof ProjectStore !== 'undefined' && 
                             ProjectStore.isProjectCompleted && 
-                            ProjectStore.isProjectCompleted("Hire Marketing Manager");
+                            ProjectStore.isProjectCompleted("Hire Marketing Manager") &&
+                            ProjectStore.isProjectCompleted("Hiring Plan");
         } else if (featureKey === 'communityEvents') {
           // Community Events budget is unlocked by Run Community Events project
           feature.visible = typeof ProjectStore !== 'undefined' && 

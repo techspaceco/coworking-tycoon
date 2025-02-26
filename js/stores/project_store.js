@@ -107,7 +107,7 @@ var ProjectStore;
         
         Logger.log("You've started a community events program! Member satisfaction has improved. You can now see the Member Satisfaction panel and set a per-member monthly budget in the Product panel.");
         
-        // Show an alert to call attention to the new panel
+        // Show a toast notification to call attention to the new panel
         setTimeout(function() {
           // Double-check the panel is visible
           var panel = document.getElementById('member-satisfaction-panel');
@@ -115,7 +115,24 @@ var ProjectStore;
             panel.style.display = 'block';
           }
           
-          alert("You've unlocked the Member Satisfaction panel and Community Events Budget! Set your monthly community events budget in the Product panel.");
+          try {
+            var toast = document.getElementById('event-notification');
+            var toastTitle = document.getElementById('event-title');
+            var toastDesc = document.getElementById('event-description');
+            var toastIcon = document.getElementById('event-icon');
+            
+            if (toast && toastTitle && toastDesc) {
+              toastTitle.textContent = "New Feature Unlocked!";
+              toastIcon.className = "bi bi-award-fill me-2";
+              toastDesc.textContent = "You've unlocked the Member Satisfaction panel and Community Events Budget! Set your monthly community events budget in the Product panel.";
+              
+              // Show the toast
+              var bsToast = new bootstrap.Toast(toast);
+              bsToast.show();
+            }
+          } catch (err) {
+            console.error("Error showing toast notification:", err);
+          }
         }, 500);
       }
     }),
@@ -130,6 +147,17 @@ var ProjectStore;
       callback: function () {
         AppStore.bankAccount().withdraw(5000);
         completedProjects['Hire Sales Manager'] = true;
+        
+        // Staff functionality disabled for now
+        /*
+        // Create staff member in the StaffStore
+        if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
+          var staffMember = StaffStore.createStaffFromProject('Hire Sales Manager');
+          if (staffMember) {
+            console.log("Created Sales Manager staff member: ", staffMember.name());
+          }
+        }
+        */
         
         // Use the global permanent show function if available
         if (typeof window.showSalesControls === 'function') {
@@ -169,6 +197,15 @@ var ProjectStore;
           InterfaceRepainter.call();
         }
         
+        /* Staff functionality disabled
+        // Force UI refresh for staff panel
+        if (typeof StaffDecorator !== 'undefined') {
+          setTimeout(function() {
+            StaffDecorator.renderStaffManagement();
+          }, 100);
+        }
+        */
+        
         Logger.log("You've hired a Sales Manager! You can now invest in your sales team. This adds £5,000 per month in ongoing costs.");
         
         // Set a global flag for persistence across refreshes
@@ -186,6 +223,14 @@ var ProjectStore;
       callback: function () {
         AppStore.bankAccount().withdraw(5000);
         completedProjects['Hire Marketing Manager'] = true;
+        
+        // Create staff member in the StaffStore
+        if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
+          var staffMember = StaffStore.createStaffFromProject('Hire Marketing Manager');
+          if (staffMember) {
+            console.log("Created Marketing Manager staff member: ", staffMember.name());
+          }
+        }
         
         // Use the global permanent show function if available
         if (typeof window.showMarketingControls === 'function') {
@@ -223,6 +268,13 @@ var ProjectStore;
         if (typeof InterfaceRepainter !== 'undefined') {
           InterfaceRepainter.updateFeatureVisibility();
           InterfaceRepainter.call();
+        }
+        
+        // Force UI refresh for staff panel
+        if (typeof StaffDecorator !== 'undefined') {
+          setTimeout(function() {
+            StaffDecorator.renderStaffManagement();
+          }, 100);
         }
         
         Logger.log("You've hired a Marketing Manager! You can now invest in your marketing team. This adds £5,000 per month in ongoing costs.");
@@ -291,6 +343,7 @@ var ProjectStore;
         completedProjects['Raise Series D'] = true;
       }
     }),
+    /* Office Manager disabled with Staff functionality
     new Project({
       title: 'Hire Office Manager',
       description: 'Reduce member churn rate and improve member satisfaction. Costs £5,000 upfront plus £50,000 per year in ongoing costs.',
@@ -304,9 +357,26 @@ var ProjectStore;
       callback: function () {
         AppStore.bankAccount().withdraw(5000);
         completedProjects['Hire Office Manager'] = true;
+        
+        // Create staff member in the StaffStore
+        if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
+          var staffMember = StaffStore.createStaffFromProject('Hire Office Manager');
+          if (staffMember) {
+            console.log("Created Office Manager staff member: ", staffMember.name());
+          }
+        }
+        
         Logger.log("You've hired an Office Manager! Member churn rate is reduced and satisfaction is improved. This adds £4,167 in monthly costs.");
+        
+        // Force UI refresh for staff panel
+        if (typeof StaffDecorator !== 'undefined') {
+          setTimeout(function() {
+            StaffDecorator.renderStaffManagement();
+          }, 100);
+        }
       }
     }),
+    */
     new Project({
       title: 'Improve Amenities',
       description: 'Increase member satisfaction and willingness to pay higher prices.',
@@ -320,26 +390,154 @@ var ProjectStore;
         completedProjects['Improve Amenities'] = true;
         Logger.log("You've upgraded the amenities! Members are willing to pay more for their workspace.");
       }
+    }),
+    /* Staff functionality disabled for now
+    new Project({
+      title: 'Hiring Plan',
+      description: 'Create a system to hire, manage, and develop your staff. Costs £5,000 upfront. Will allow hiring specialised staff with various benefits.',
+      conditions: 'Have at least £5,000 in the bank and 50+ members',
+      conditionsMet: function () {
+        return AppStore.bankAccount().balance() >= 5000 && 
+               AppStore.managementInformationSystem().memberUserCount() >= 50;
+      },
+      callback: function () {
+        AppStore.bankAccount().withdraw(5000);
+        completedProjects['Hiring Plan'] = true;
+        
+        // Use the global function to unlock staff management if available
+        if (typeof window.unlockStaffManagement === 'function') {
+          console.log("Calling global unlockStaffManagement from project callback");
+          window.unlockStaffManagement();
+        } else {
+          console.error("Global unlockStaffManagement function not available");
+          
+          // Fallback: try to show the staff management panel directly
+          try {
+            console.log("Showing Staff Management panel directly");
+            var staffPanel = document.querySelector('.card[data-feature="staffManagement"]');
+            if (staffPanel) {
+              staffPanel.classList.remove('feature-section');
+              staffPanel.removeAttribute('data-feature');
+              staffPanel.style.display = 'block';
+            } else {
+              console.error("Could not find staff management panel element");
+            }
+          } catch (err) {
+            console.error("Error showing staff management panel:", err);
+          }
+        }
+        
+        // Initialize StaffStore if available
+        if (typeof StaffStore !== 'undefined' && StaffStore.init) {
+          StaffStore.init();
+        }
+        
+        Logger.log('Hiring Plan ready! You can now hire and manage staff.');
+      }
     })
+    */
   ];
 
   // Public API
   ProjectStore = {
-    // Get visible projects based on progression
+    // Get visible projects based on progression - limited to maximum of 3
     projects: function () {
       // If ProgressionStore is available, filter by visible projects
       if (typeof ProgressionStore !== 'undefined') {
         var visibleProjectTitles = ProgressionStore.getVisibleProjects();
-        // Filter all projects to only include those in the visible list
-        return allProjects.filter(function(project) {
-          return visibleProjectTitles.indexOf(project.title()) !== -1 && 
-                 !completedProjects[project.title()];
+        
+        // Add staff-related projects only if Hiring Plan is completed
+        var staffProjects = ["Hire Office Manager", "Hire Sales Manager", "Hire Marketing Manager"];
+        var hiringPlanCompleted = completedProjects['Hiring Plan'];
+        
+        // Filter projects to only include those in the visible list
+        var eligibleProjects = allProjects.filter(function(project) {
+          var title = project.title();
+          // Check if it's a staff project that requires Hiring Plan
+          var isStaffProject = staffProjects.indexOf(title) !== -1;
+          
+          // Special handling for staff projects
+          if (isStaffProject) {
+            // Only show if both in visible projects list AND Hiring Plan is completed
+            return visibleProjectTitles.indexOf(title) !== -1 && 
+                   !completedProjects[title] &&
+                   hiringPlanCompleted;
+          } else {
+            // Normal handling for non-staff projects
+            return visibleProjectTitles.indexOf(title) !== -1 && 
+                   !completedProjects[title];
+          }
         });
+        
+        // Sort by priority - ensure fixed order with Community Events first, then Hiring Plan
+        eligibleProjects.sort(function(a, b) {
+          // Fixed order for important projects
+          const projectOrder = {
+            "Run Community Events": 1,
+            "Hiring Plan": 2,
+            "Improve Amenities": 3
+          };
+          
+          const orderA = projectOrder[a.title()] || 999;
+          const orderB = projectOrder[b.title()] || 999;
+          
+          if (orderA !== orderB) {
+            return orderA - orderB;
+          }
+          
+          // For staff projects, prioritize Office Manager
+          if (staffProjects.indexOf(a.title()) !== -1 && staffProjects.indexOf(b.title()) !== -1) {
+            if (a.title() === "Hire Office Manager") return -1;
+            if (b.title() === "Hire Office Manager") return 1;
+          }
+          
+          return 0; // Default order
+        });
+        
+        // Limit to maximum of 3 projects
+        return eligibleProjects.slice(0, 3);
       }
-      // Default behavior: return all active projects
-      return allProjects.filter(function(project) {
-        return !completedProjects[project.title()];
+      
+      // Default behavior: return all active projects (except staff projects if Hiring Plan not complete)
+      // Also limited to max of 3
+      var staffProjects = ["Hire Office Manager", "Hire Sales Manager", "Hire Marketing Manager"];
+      var hiringPlanCompleted = completedProjects['Hiring Plan'];
+      
+      var eligibleProjects = allProjects.filter(function(project) {
+        var title = project.title();
+        var isStaffProject = staffProjects.indexOf(title) !== -1;
+        
+        return !completedProjects[title] && 
+               (!isStaffProject || hiringPlanCompleted);
       });
+      
+      // Sort by priority - ensure fixed order
+      eligibleProjects.sort(function(a, b) {
+        // Fixed order for important projects
+        const projectOrder = {
+          "Run Community Events": 1,
+          "Hiring Plan": 2,
+          "Improve Amenities": 3
+        };
+        
+        const orderA = projectOrder[a.title()] || 999;
+        const orderB = projectOrder[b.title()] || 999;
+        
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        
+        // For staff projects, prioritize Office Manager
+        if (staffProjects.indexOf(a.title()) !== -1 && staffProjects.indexOf(b.title()) !== -1) {
+          if (a.title() === "Hire Office Manager") return -1;
+          if (b.title() === "Hire Office Manager") return 1;
+        }
+        
+        return 0; // Default order
+      });
+      
+      // Limit to maximum of 3 projects
+      return eligibleProjects.slice(0, 3);
     },
     
     // Get all projects, even those not visible due to progression
