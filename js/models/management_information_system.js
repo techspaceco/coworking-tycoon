@@ -18,6 +18,18 @@ var ManagementInformationSystem;
     var quarterlyRentBill = 0;
     var totalArea = 0;
     var npsScore = 50; // Start with a neutral NPS
+    
+    // Event-related multipliers
+    var leadMultiplier = 1;
+    var leadMultiplierEndDate = null;
+    var churnMultiplier = 1;
+    var churnMultiplierEndDate = null;
+    var npsBoost = 0;
+    var npsBoostEndDate = null;
+    var overheadMultiplier = 1;
+    var overheadMultiplierEndDate = null;
+    var temporaryMembers = 0;
+    var temporaryMembersEndDate = null;
     var npsFeedback = ""; // Current top issue affecting NPS
     var communityEventsPerMember = 0; // Community events budget per member per month (in £)
     
@@ -485,16 +497,269 @@ var ManagementInformationSystem;
       } else if (type === 'profit') {
         return financialHistory.profit;
       }
-      return [];
     };
     
-    // NPS (Net Promoter Score) methods
+    // Event-related methods
+    this.increaseLeadMultiplier = function(multiplier, durationDays) {
+      leadMultiplier = multiplier;
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      leadMultiplierEndDate = endDate;
+    };
+    
+    this.decreaseLeadMultiplier = function(multiplier, durationDays) {
+      leadMultiplier = multiplier; // Should be < 1
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      leadMultiplierEndDate = endDate;
+    };
+    
+    this.getLeadMultiplier = function() {
+      return leadMultiplier;
+    };
+    
+    this.increaseChurnMultiplier = function(multiplier, durationDays) {
+      churnMultiplier = multiplier; // > 1 means more churn
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      churnMultiplierEndDate = endDate;
+    };
+    
+    this.decreaseChurnMultiplier = function(multiplier, durationDays) {
+      churnMultiplier = multiplier; // < 1 means less churn
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      churnMultiplierEndDate = endDate;
+    };
+    
+    this.getChurnMultiplier = function() {
+      return churnMultiplier;
+    };
+    
+    this.boostNps = function(amount, durationDays) {
+      npsBoost = amount;
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      npsBoostEndDate = endDate;
+      
+      // Apply boost immediately
+      this.calculateNps();
+    };
+    
+    this.decreaseNps = function(amount, durationDays) {
+      npsBoost = -amount; // Negative for decrease
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      npsBoostEndDate = endDate;
+      
+      // Apply decrease immediately
+      this.calculateNps();
+    };
+    
+    this.increaseOverheadMultiplier = function(multiplier, durationDays) {
+      overheadMultiplier = multiplier; // > 1 means higher costs
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      overheadMultiplierEndDate = endDate;
+    };
+    
+    this.decreaseOverheadMultiplier = function(multiplier, durationDays) {
+      overheadMultiplier = multiplier; // < 1 means lower costs
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      overheadMultiplierEndDate = endDate;
+    };
+    
+    this.getOverheadMultiplier = function() {
+      return overheadMultiplier;
+    };
+    
+    this.addTemporaryMembers = function(count, durationDays) {
+      temporaryMembers = count;
+      var endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+      temporaryMembersEndDate = endDate;
+    };
+    
+    // Calculate NPS score based on price, density and events budget
+    this.calculateNps = function() {
+      // Base NPS on price, density, and events budget
+      var pricing = AppStore.workstationPrice();
+      var density = AppStore.density();
+      
+      // Start with a base score
+      var baseScore = 50;
+      
+      // Adjust for pricing (lower is better)
+      var priceFactor = 0;
+      if (pricing <= 600) {
+        priceFactor = 20; // Great price
+      } else if (pricing <= 800) {
+        priceFactor = 10; // Good price
+      } else if (pricing <= 1000) {
+        priceFactor = 0; // Neutral
+      } else if (pricing <= 1200) {
+        priceFactor = -10; // Expensive
+      } else {
+        priceFactor = -20; // Very expensive
+      }
+      
+      // Adjust for density (lower is better)
+      var densityFactor = 0;
+      if (density <= 10) {
+        densityFactor = 15; // Spacious
+      } else if (density <= 20) {
+        densityFactor = 5; // Good space
+      } else if (density <= 30) {
+        densityFactor = 0; // Neutral
+      } else if (density <= 40) {
+        densityFactor = -10; // Cramped
+      } else {
+        densityFactor = -20; // Very cramped
+      }
+      
+      // Adjust for community events (higher is better)
+      var eventsFactor = 0;
+      if (communityEventsPerMember >= 40) {
+        eventsFactor = 15; // Excellent events
+      } else if (communityEventsPerMember >= 30) {
+        eventsFactor = 10; // Great events
+      } else if (communityEventsPerMember >= 20) {
+        eventsFactor = 5; // Good events
+      } else if (communityEventsPerMember >= 10) {
+        eventsFactor = 0; // Some events
+      } else {
+        eventsFactor = -5; // Few events
+      }
+      
+      // Calculate the total score
+      var totalScore = baseScore + priceFactor + densityFactor + eventsFactor;
+      
+      // Apply the event boost
+      totalScore += npsBoost;
+      
+      // Clamp between 0 and 100
+      totalScore = Math.max(0, Math.min(100, totalScore));
+      
+      // Update the NPS score
+      npsScore = totalScore;
+      
+      // Generate feedback based on the biggest issue
+      var feedback = "";
+      var lowestFactor = Math.min(priceFactor, densityFactor, eventsFactor);
+      
+      if (totalScore >= 70) {
+        if (priceFactor >= 10 && densityFactor >= 10) {
+          feedback = "Members love the space and value!";
+        } else if (communityEventsPerMember >= 30) {
+          feedback = "The community events are highly appreciated!";
+        } else {
+          feedback = "Members are very satisfied with their experience.";
+        }
+      } else if (totalScore >= 50) {
+        if (lowestFactor === priceFactor && priceFactor < 0) {
+          feedback = "Some members feel the price is a bit high.";
+        } else if (lowestFactor === densityFactor && densityFactor < 0) {
+          feedback = "Some members would prefer more space.";
+        } else if (lowestFactor === eventsFactor && eventsFactor <= 0) {
+          feedback = "Members would appreciate more community events.";
+        } else {
+          feedback = "Members are generally satisfied with the space.";
+        }
+      } else if (totalScore >= 30) {
+        if (lowestFactor === priceFactor && priceFactor < -10) {
+          feedback = "Many members complain about the high price.";
+        } else if (lowestFactor === densityFactor && densityFactor < -10) {
+          feedback = "The space feels too crowded for many members.";
+        } else if (lowestFactor === eventsFactor && eventsFactor < 0) {
+          feedback = "There's not enough community engagement.";
+        } else {
+          feedback = "Members have mixed feelings about their experience.";
+        }
+      } else {
+        if (priceFactor < -15 && densityFactor < -15) {
+          feedback = "Members find the space overpriced and overcrowded!";
+        } else if (priceFactor < -15) {
+          feedback = "The pricing is driving members away!";
+        } else if (densityFactor < -15) {
+          feedback = "Members hate how cramped the space is!";
+        } else {
+          feedback = "Members are very dissatisfied with their experience.";
+        }
+      }
+      
+      npsFeedback = feedback;
+      
+      // Request UI update
+      if (typeof needsUiUpdate !== 'undefined') {
+        needsUiUpdate = true;
+      }
+      
+      return totalScore;
+    };
+    
     this.getNpsScore = function() {
       return npsScore;
     };
     
     this.getNpsFeedback = function() {
       return npsFeedback;
+    };
+    
+    // Check for expired multipliers - call this in the recalculateMonthlyChurn method
+    this.checkExpiredMultipliers = function() {
+      var now = new Date();
+      
+      // Lead multiplier
+      if (leadMultiplierEndDate && now >= leadMultiplierEndDate) {
+        leadMultiplier = 1;
+        leadMultiplierEndDate = null;
+      }
+      
+      // Churn multiplier
+      if (churnMultiplierEndDate && now >= churnMultiplierEndDate) {
+        churnMultiplier = 1;
+        churnMultiplierEndDate = null;
+      }
+      
+      // NPS boost
+      if (npsBoostEndDate && now >= npsBoostEndDate) {
+        npsBoost = 0;
+        npsBoostEndDate = null;
+        this.calculateNps(); // Recalculate NPS now that boost is gone
+      }
+      
+      // Overhead multiplier
+      if (overheadMultiplierEndDate && now >= overheadMultiplierEndDate) {
+        overheadMultiplier = 1;
+        overheadMultiplierEndDate = null;
+      }
+      
+      // Temporary members
+      if (temporaryMembersEndDate && now >= temporaryMembersEndDate) {
+        temporaryMembers = 0;
+        temporaryMembersEndDate = null;
+      }
+    };
+     
+    // Original memberUserCount function remains unchanged
+    // We'll get member count from the spaces instead of trying to use AppStore.memberCompanies
+    var originalMemberUserCount = this.memberUserCount;
+    
+    // Override only if we have temporary members
+    this.memberUserCount = function() {
+      if (temporaryMembers > 0) {
+        // Get the actual count using the existing spaces method
+        var base = 0;
+        var spaces = AppStore.spaces();
+        for (var i = 0; i < spaces.length; i++) {
+          base += spaces[i].occupiedWorkstations();
+        }
+        return base + temporaryMembers;
+      } else {
+        // Use the original method if no temporary members
+        return originalMemberUserCount.call(this);
+      }
     };
     
     // Community events budget methods

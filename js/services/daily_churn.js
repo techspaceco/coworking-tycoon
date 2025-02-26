@@ -21,6 +21,15 @@ var DailyChurn = {
       // Base adjustments for small/new businesses
       var mis = AppStore.managementInformationSystem();
       
+      // Apply churn multiplier from events (if applicable)
+      if (mis.getChurnMultiplier) {
+        var eventMultiplier = mis.getChurnMultiplier();
+        if (eventMultiplier !== 1) {
+          console.log("Applying event churn multiplier: " + eventMultiplier);
+          dailyChurnRate *= eventMultiplier;
+        }
+      }
+      
       // Force NPS calculation to get latest values
       if (mis.calculateNps) {
         console.log("Recalculating NPS for churn calculation");

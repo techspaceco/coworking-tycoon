@@ -24,6 +24,11 @@ var needsUiUpdate = true;
       button.addEventListener('mousedown', function(e) {
         action();
         needsUiUpdate = true;
+        
+        // Unlock events after user interaction
+        if (typeof EventStore !== 'undefined') {
+          EventStore.unlockEvents();
+        }
       });
       
       // For mobile
@@ -37,6 +42,11 @@ var needsUiUpdate = true;
         button.style.opacity = '1'; // Restore opacity
         action();
         needsUiUpdate = true;
+        
+        // Unlock events after user interaction
+        if (typeof EventStore !== 'undefined') {
+          EventStore.unlockEvents();
+        }
       });
     }
 
@@ -118,12 +128,23 @@ var needsUiUpdate = true;
 
   function handleQuarterChange() {
     QuarterlyRentPayer.call();
+    
+    // Check for quarterly events
+    if (typeof EventStore !== 'undefined') {
+      EventStore.checkForQuarterlyEvent();
+    }
+    
     needsUiUpdate = true;
   }
 
   function handleMonthChange() {
     MonthlyLicenceFeeCollector.call();
     MonthlyBillPayer.call();
+    
+    // Check for monthly events
+    if (typeof EventStore !== 'undefined') {
+      EventStore.checkForMonthlyEvent();
+    }
     
     // Record financial data for charting at each month
     AppStore.managementInformationSystem().recordFinancialData();
@@ -136,6 +157,12 @@ var needsUiUpdate = true;
   
   function handleDayChange() {
     var mis = AppStore.managementInformationSystem();
+    
+    // Check for random events
+    if (typeof EventStore !== 'undefined') {
+      EventStore.checkForDailyEvent();
+    }
+    
     DailyChurn.call();
     mis.recalculateMonthlyChurn();
     

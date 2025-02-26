@@ -20,6 +20,7 @@
     <script src='./js/lib/charts/line-chart.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script src='./js/stores/progression_store.js'></script>
+    <script src='./js/stores/event_store.js'></script>
     <script src='./js/models/bank_account.js'></script>
     <script src='./js/models/lead.js'></script>
     <script src='./js/models/lease.js'></script>
@@ -49,6 +50,19 @@
   <body>
     <div class="container-fluid mt-3">
       <div id='console'></div>
+      
+    <!-- Event notification toast -->
+    <div id="event-notification" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <i id="event-icon" class="bi bi-info-circle-fill me-2"></i>
+        <strong id="event-title" class="me-auto">Event Title</strong>
+        <small id="event-time">just now</small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div id="event-description" class="toast-body">
+        Event description goes here.
+      </div>
+    </div>
     </div>
 
     <div class='container-fluid'>

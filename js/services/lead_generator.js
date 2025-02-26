@@ -59,6 +59,17 @@ var LeadGenerator = {
     let minLeads = Math.max(2, pricingFactor * 2 ** (marketingLevel * 0.28)); // Increased exponent from 0.25 to 0.28
     let maxLeads = Math.max(4, pricingFactor * 2 ** (marketingLevel * 0.28 + power));
     
+    // Apply lead multiplier from events if available
+    let mis = AppStore.managementInformationSystem();
+    if (mis.getLeadMultiplier) {
+      let leadMultiplier = mis.getLeadMultiplier();
+      if (leadMultiplier !== 1) {
+        console.log("Applying event lead multiplier: " + leadMultiplier);
+        minLeads *= leadMultiplier;
+        maxLeads *= leadMultiplier;
+      }
+    }
+    
     // Cap to what you can handle (with a moderate buffer)
     minLeads = Math.min(minLeads, maxLeadsHandleable * 0.6); // Increased from 0.4 to 0.6
     maxLeads = Math.min(maxLeads, maxLeadsHandleable * 1.2); // Increased from 1.0 to 1.2

@@ -437,6 +437,44 @@ h3 {
   color: var(--secondary-color);
 }
 
+/* Event Styling */
+.event-positive {
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+.event-negative {
+  color: var(--danger-color);
+  font-weight: 500;
+}
+
+.event-neutral {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.event-ending {
+  color: var(--secondary-color);
+  font-style: italic;
+}
+
+/* Event notification */
+#event-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 350px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+#event-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 /* Footer styling */
 .bd-footer {
   background-color: var(--dark-color);
