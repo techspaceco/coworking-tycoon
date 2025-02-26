@@ -68,10 +68,18 @@ var DailyChurn = {
         }
       }
       
-      // Reduce churn if Office Manager is hired (by a moderate amount)
-      // Keep this outside the NPS calculation as a direct business benefit
-      if (typeof ProjectStore !== 'undefined' && ProjectStore.isProjectCompleted) {
-        if (ProjectStore.isProjectCompleted("Hire Office Manager")) {
+      // Apply staff benefits to churn rate
+      if (typeof StaffStore !== 'undefined' && typeof StaffStore.getStaffBenefits === 'function') {
+        var staffBenefits = StaffStore.getStaffBenefits();
+        if (staffBenefits.churnReduction > 0) {
+          // The higher the churn reduction benefit, the greater the effect
+          dailyChurnRate *= (1 - staffBenefits.churnReduction);
+          console.log("Staff benefits reduce churn by " + (staffBenefits.churnReduction * 100).toFixed(1) + "%");
+        }
+      }
+      // Fallback to legacy system
+      else if (typeof ProjectStore !== 'undefined' && ProjectStore.isProjectCompleted) {
+        if (ProjectStore.isProjectCompleted("Hiring Plan") && ProjectStore.isProjectCompleted("Hire Office Manager")) {
           // Only 10-20% reduction rather than a fixed 5%
           var reductionFactor = 0.15 + (Math.random() * 0.05);
           dailyChurnRate *= (1 - reductionFactor);

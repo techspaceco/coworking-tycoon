@@ -166,8 +166,6 @@ var InterfaceRepainter;
     featureSections.forEach(function(section) {
       var featureKey = section.getAttribute('data-feature');
       if (featureKey) {
-        // Staff management is currently disabled
-        /*
         // Special case for staff management - strictly tied to Hiring Plan project
         if (featureKey === 'staffManagement') {
           var hiringPlanCompleted = false;
@@ -185,10 +183,9 @@ var InterfaceRepainter;
             section.classList.add('feature-hidden');
             featuresShown.staffManagement = false;
           }
-        } else
-        */
+        }
         // Special handling for Sales and Marketing controls to prevent flickering
-        if (featureKey === 'salesControls' && featuresShown.salesControls) {
+        else if (featureKey === 'salesControls' && featuresShown.salesControls) {
           // Once Sales controls are shown, keep them shown
           section.style.display = '';
           section.classList.remove('feature-hidden');
@@ -826,52 +823,22 @@ var InterfaceRepainter;
       // This enforces all our feature visibility rules consistently
       updateFeatureVisibility();
       
-      // Staff management UI is currently disabled
-      /*
-      // Update staff management UI if StaffDecorator exists
-      if (typeof StaffDecorator !== 'undefined') {
-        // Update staff cost
-        var staffCostElement = document.getElementById('staff-monthly-cost');
-        if (staffCostElement) {
-          staffCostElement.textContent = StaffDecorator.getMonthlyStaffCostFormatted();
-        }
-        
-        // Check if Hiring Plan is completed
+      // Staff management is now hidden, but we still initialize data in the background
+      if (typeof StaffDecorator !== 'undefined' && typeof StaffStore !== 'undefined') {
+        // We still need to initialize staff if the hiring plan is completed
         var hiringPlanCompleted = typeof ProjectStore !== 'undefined' && 
                                   ProjectStore.isProjectCompleted && 
                                   ProjectStore.isProjectCompleted('Hiring Plan');
         
-        // Get the staff section element
-        var staffSection = document.querySelector('.card[data-feature="staffManagement"]');
-        
-        // Enforce visibility rule - only show if Hiring Plan is completed
-        if (staffSection) {
-          if (hiringPlanCompleted) {
-            // Hiring Plan completed, show the panel
-            staffSection.style.display = 'block';
-            featuresShown.staffManagement = true;
-            
-            // Get active tab and render only that content
-            var activeTab = document.querySelector('.staff-tab.active');
-            if (activeTab) {
-              var tabName = activeTab.getAttribute('data-tab');
-              if (tabName === 'staff') {
-                StaffDecorator.renderStaff('staff-container');
-              } else if (tabName === 'recruitment') {
-                StaffDecorator.renderRecruitment('recruitment-container');
-              }
-            } else {
-              // If no active tab, default to staff view
-              StaffDecorator.renderStaff('staff-container');
-            }
-          } else {
-            // Hiring Plan not completed, hide the panel
-            staffSection.style.display = 'none';
-            featuresShown.staffManagement = false;
+        if (hiringPlanCompleted) {
+          featuresShown.staffManagement = true;
+          
+          // Initialize staff in the background
+          if (typeof StaffStore.init === 'function') {
+            StaffStore.init();
           }
         }
       }
-      */
       
       // Apply animations to newly visible elements
       try {

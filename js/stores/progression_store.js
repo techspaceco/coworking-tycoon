@@ -69,8 +69,8 @@ var ProgressionStore;
   // Projects to unlock at each stage
   var stageProjects = {
     [STAGE.INTRO]: [],
-    [STAGE.FIRST_SPACE]: ["Run Community Events", "Improve Amenities"], // Hiring Plan disabled
-    [STAGE.GROWING]: ["Hire Sales Manager", "Hire Marketing Manager"], // Hire Office Manager disabled
+    [STAGE.FIRST_SPACE]: ["Run Community Events", "Hiring Plan", "Improve Amenities"],
+    [STAGE.GROWING]: ["Hire Office Manager", "Hire Sales Manager", "Hire Marketing Manager"],
     [STAGE.EXPANDING]: ["Raise Series A"],
     [STAGE.ESTABLISHED]: ["Raise Series B"],
     [STAGE.SCALING]: ["Raise Series C"],

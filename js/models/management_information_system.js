@@ -488,13 +488,20 @@ var ManagementInformationSystem;
     };
 
     this.monthlyStaffCost = function () {
+      console.log("MIS.monthlyStaffCost() called");
+      
       if (cache.monthlyOfficeManagerCost === null) {
+        console.log("Recalculating monthlyOfficeManagerCost");
+        
         // First check if StaffStore exists and use it for staff costs
         if (typeof StaffStore !== 'undefined' && typeof StaffStore.getMonthlyStaffCost === 'function') {
-          cache.monthlyOfficeManagerCost = StaffStore.getMonthlyStaffCost();
+          var staffCost = StaffStore.getMonthlyStaffCost();
+          console.log("Got staff cost from StaffStore:", staffCost);
+          cache.monthlyOfficeManagerCost = staffCost;
         }
         // Legacy fallback for compatibility
         else if (ProjectStore.isProjectCompleted("Hiring Plan")) {
+          console.log("Using legacy staff cost calculation");
           cache.monthlyOfficeManagerCost = ProjectStore.isProjectCompleted("Hire Office Manager") ? 4167 : 0; // £50,000 per year = £4,167 per month
           
           // Add cost for Sales Manager if hired
@@ -506,12 +513,17 @@ var ManagementInformationSystem;
           if (ProjectStore.isProjectCompleted("Hire Marketing Manager")) {
             cache.monthlyOfficeManagerCost += 5000; // £60,000 per year = £5,000 per month
           }
+          
+          console.log("Legacy staff cost calculated:", cache.monthlyOfficeManagerCost);
         } else {
+          console.log("No Hiring Plan completed, setting staff cost to 0");
           cache.monthlyOfficeManagerCost = 0; // No managers without Hiring Plan
         }
       }
       
       if (cache.monthlyCommunityEventsCost === null) {
+        console.log("Recalculating monthlyCommunityEventsCost");
+        
         if (ProjectStore.isProjectCompleted("Run Community Events")) {
           // Calculate cost based on number of members and per-member budget
           var memberCount = this.memberUserCount();
@@ -523,6 +535,7 @@ var ManagementInformationSystem;
           // Calculate total monthly cost based on per-member amount with discount
           var baseCost = memberCount * communityEventsPerMember;
           cache.monthlyCommunityEventsCost = Math.round(baseCost * (1 - Math.min(eventBudgetDiscount, 0.5)));
+          console.log("Community events cost calculated:", cache.monthlyCommunityEventsCost);
         } else {
           cache.monthlyCommunityEventsCost = 0;
         }
@@ -530,18 +543,36 @@ var ManagementInformationSystem;
       
       // Base staff cost from space area and rates
       var baseStaffCost = parseInt(this.staffRate() * totalArea / 12);
+      console.log("Base staff cost (from space area):", baseStaffCost);
       
-      // Add regular staff costs managed through the StaffStore
+      // IMPORTANT: Do not call StaffStore.getMonthlyStaffCost() again, use the cached value
+      // This avoids duplicate calculations and potential logging issues
       var staffStoreCost = 0;
-      if (typeof StaffStore !== 'undefined') {
-        staffStoreCost = StaffStore.getMonthlyStaffCost();
+      
+      // If Staff Store was used and returned a value, don't use legacy costs
+      if (cache.monthlyOfficeManagerCost > 0 && typeof StaffStore !== 'undefined') {
+        console.log("Using StaffStore cost directly:", cache.monthlyOfficeManagerCost);
+        // Use the value already in the cache for total staff cost
+        staffStoreCost = 0; // Don't double count
+      } else {
+        console.log("Using legacy staff cost system");
+        staffStoreCost = 0;
       }
       
-      // Base staff cost plus office manager costs, community events costs, and staff store costs
-      return baseStaffCost + 
-             cache.monthlyOfficeManagerCost + 
-             cache.monthlyCommunityEventsCost +
-             staffStoreCost;
+      // Total the costs
+      var total = baseStaffCost + 
+                 cache.monthlyOfficeManagerCost + 
+                 cache.monthlyCommunityEventsCost +
+                 staffStoreCost;
+      
+      console.log("Total monthly staff cost calculation:", 
+                 "Base:", baseStaffCost,
+                 "Office Manager:", cache.monthlyOfficeManagerCost,
+                 "Events:", cache.monthlyCommunityEventsCost,
+                 "Extra:", staffStoreCost,
+                 "Total:", total);
+      
+      return total;
     };
 
     this.staffRate = function () {

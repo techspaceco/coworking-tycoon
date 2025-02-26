@@ -151,36 +151,12 @@
             </div>
           </div>
           
-          <!-- Staff panel - hidden until we're ready to implement it fully -->
-          <!--
-          <div class='card mb-3 feature-section' data-feature="staffManagement" style="display: none;">
-            <div class='card-body'>
-              <h4 class='card-title'><i class="bi bi-people-fill me-2"></i>Staff</h4>
-                
-              <div class="staff-totals">
-                <div class="staff-totals-title">Staff Costs</div>
-                <div class="staff-monthly-cost" id="staff-monthly-cost">£0/mo</div>
-              </div>
-              
-              <div class="staff-management-tabs mt-3">
-                <div class="staff-tab active" data-tab="staff">Current Staff</div>
-                <div class="staff-tab" data-tab="recruitment">Recruitment</div>
-              </div>
-              
-              <div class="staff-tab-content active" data-tab-content="staff">
-                <div id="staff-container">
-                  <div class="text-center p-3">No staff hired yet. Open positions in the Recruitment tab.</div>
-                </div>
-              </div>
-              
-              <div class="staff-tab-content" data-tab-content="recruitment">
-                <div id="recruitment-container">
-                  <div class="text-center p-3">No positions available right now. Positions unlock as you progress in the game.</div>
-                </div>
-              </div>
-            </div>
+          <!-- Staff panel hidden but keeping the functionality -->
+          <div style="display: none;">
+            <div id="staff-container"></div>
+            <div id="recruitment-container"></div>
+            <div id="staff-monthly-cost">£0/mo</div>
           </div>
-          -->
 
           <div class='card mb-3 feature-section' data-feature="development">
             <div class='card-body'>
@@ -597,14 +573,17 @@
         }
       };
       
-      // Check project completion status periodically
+      // Keep staff functionality working but without UI
       var staffProjectCheckInterval = setInterval(function() {
         try {
           if (typeof ProjectStore !== 'undefined' && ProjectStore.isProjectCompleted) {
             // Check Staff Management project
             if (ProjectStore.isProjectCompleted("Hiring Plan")) {
-              window.unlockStaffManagement();
-              clearInterval(staffProjectCheckInterval); // Clear once unlocked
+              // Only initialize the store without showing UI
+              if (typeof StaffStore !== 'undefined' && StaffStore.init) {
+                StaffStore.init();
+              }
+              clearInterval(staffProjectCheckInterval); // Clear once initialized
             }
           }
         } catch (err) {

@@ -148,8 +148,6 @@ var ProjectStore;
         AppStore.bankAccount().withdraw(5000);
         completedProjects['Hire Sales Manager'] = true;
         
-        // Staff functionality disabled for now
-        /*
         // Create staff member in the StaffStore
         if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
           var staffMember = StaffStore.createStaffFromProject('Hire Sales Manager');
@@ -157,7 +155,6 @@ var ProjectStore;
             console.log("Created Sales Manager staff member: ", staffMember.name());
           }
         }
-        */
         
         // Use the global permanent show function if available
         if (typeof window.showSalesControls === 'function') {
@@ -197,14 +194,12 @@ var ProjectStore;
           InterfaceRepainter.call();
         }
         
-        /* Staff functionality disabled
         // Force UI refresh for staff panel
         if (typeof StaffDecorator !== 'undefined') {
           setTimeout(function() {
             StaffDecorator.renderStaffManagement();
           }, 100);
         }
-        */
         
         Logger.log("You've hired a Sales Manager! You can now invest in your sales team. This adds £5,000 per month in ongoing costs.");
         
@@ -343,7 +338,6 @@ var ProjectStore;
         completedProjects['Raise Series D'] = true;
       }
     }),
-    /* Office Manager disabled with Staff functionality
     new Project({
       title: 'Hire Office Manager',
       description: 'Reduce member churn rate and improve member satisfaction. Costs £5,000 upfront plus £50,000 per year in ongoing costs.',
@@ -376,7 +370,6 @@ var ProjectStore;
         }
       }
     }),
-    */
     new Project({
       title: 'Improve Amenities',
       description: 'Increase member satisfaction and willingness to pay higher prices.',
@@ -391,7 +384,6 @@ var ProjectStore;
         Logger.log("You've upgraded the amenities! Members are willing to pay more for their workspace.");
       }
     }),
-    /* Staff functionality disabled for now
     new Project({
       title: 'Hiring Plan',
       description: 'Create a system to hire, manage, and develop your staff. Costs £5,000 upfront. Will allow hiring specialised staff with various benefits.',
@@ -434,8 +426,7 @@ var ProjectStore;
         
         Logger.log('Hiring Plan ready! You can now hire and manage staff.');
       }
-    })
-    */
+    }),
   ];
 
   // Public API
