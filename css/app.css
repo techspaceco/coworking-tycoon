@@ -69,7 +69,6 @@
 .product-controls {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .product-control-item {
@@ -80,45 +79,64 @@
 
 .control-label {
   flex: 1;
-  font-weight: 500;
   font-size: 90%;
+  margin-right: 10px;
 }
 
 .control-buttons {
   display: flex;
   align-items: center;
   gap: 5px;
+  min-width: 150px;
+  justify-content: flex-end;
 }
 
 .info-grid {
   display: flex;
   justify-content: space-between;
   font-size: 90%;
+  margin: 5px 0;
 }
 
 .info-item {
   padding: 5px;
+  flex: 1;
+}
+
+.level-group {
+  margin-bottom: 15px;
+  padding-top: 5px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .level-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+}
+
+.level-label {
+  flex: 1;
+  font-size: 90%;
 }
 
 .level-button {
   flex-shrink: 0;
+  margin-right: 10px;
 }
 
 .level-cost {
   font-size: 90%;
   color: #666;
+  min-width: 60px;
+  text-align: right;
 }
 
 .level-info {
   font-size: 90%;
   margin-bottom: 5px;
+  margin-left: 5px;
 }
 
 /* Improve buttons for touch devices */

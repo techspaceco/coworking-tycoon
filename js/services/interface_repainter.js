@@ -315,158 +315,86 @@ var InterfaceRepainter;
       if (!deals.length) {
         dealsEl.innerHTML = 'Nothing on the market right now.';
       } else {
-        mostRecentDealId = deals[deals.length - 1].id;
+        // Clear the deals display and redraw everything from scratch
         dealsEl.innerHTML = '';
-
-        var dealFragment = document.createDocumentFragment();
-        deals.forEach(function (deal) {
-          var lease = deal.lease();
-          
-          // Assign ID to identify the deal
-          var dealId = (typeof deal.id === 'function') ? deal.id() : "deal_" + lease.area() + "_" + lease.pricePerSquareFoot();
-
-          var el = document.createElement('div');
-          el.className = 'border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3';
-  
-          var priceEl = document.createElement('p');
-          priceEl.innerHTML = 'Price: ' + lease.decorate().pricePerSquareFoot();
-          el.appendChild(priceEl);
-  
-          var areaEl = document.createElement('p');
-          areaEl.innerHTML = 'Area: ' + lease.decorate().area();
-          el.appendChild(areaEl);
-  
-          var depositEl = document.createElement('p');
-          depositEl.innerHTML = 'Deposit: ' + lease.decorate().deposit();
-          el.appendChild(depositEl);
-  
-          var leaseBuyButton = document.createElement('button');
-          leaseBuyButton.innerHTML = 'Lease';
-          leaseBuyButton.id = 'buy-button-' + dealId;
-          leaseBuyButton.style.padding = '5px 15px';
-          leaseBuyButton.style.borderRadius = '3px';
-          leaseBuyButton.style.cursor = 'pointer';
-          leaseBuyButton.style.fontWeight = 'bold';
-          el.appendChild(leaseBuyButton);
-  
-          // Check if we can afford this property
-          var canAfford = bankBalance >= lease.deposit();
-          
-          if (canAfford) {
-            let cashLowAfterDeposit = cashLow - lease.deposit();
-            let cashLowAfterDepositOverRevenue = revenue === 0 ? 0 : cashLowAfterDeposit / revenue;
+        
+        // Create a temporary container to hold the deal listing HTML
+        var tempDealsHtml = [];
+        
+        // We'll create the HTML for each deal and append to an array
+        deals.forEach(function(deal, index) {
+            var lease = deal.lease();
             
-            leaseBuyButton.disabled = false;
+            // Get lease details
+            var priceText = lease.decorate().pricePerSquareFoot();
+            var areaText = lease.decorate().area();
+            var depositValue = lease.deposit();
+            var depositText = lease.decorate().deposit();
             
-            if (cashLowAfterDeposit <= 0 || cashLowAfterDepositOverRevenue < 2) {
-              leaseBuyButton.style.backgroundColor = '#dc3545';
-              leaseBuyButton.style.color = 'white';
-              leaseBuyButton.style.border = '1px solid #dc3545';
-            } else if (cashLowAfterDepositOverRevenue < 3) {
-              leaseBuyButton.style.backgroundColor = '#ffc107';
-              leaseBuyButton.style.color = 'black';
-              leaseBuyButton.style.border = '1px solid #ffc107';
+            // Check if player can afford this property
+            var canAfford = bankBalance >= depositValue;
+            let buttonHtml;
+            
+            // Create HTML for button based on affordability
+            if (canAfford) {
+                let buttonClass = 'lease-button';
+                let buttonColor;
+                let textColor;
+                let buttonStyle;
+                
+                let cashLowAfterDeposit = cashLow - depositValue;
+                let cashLowAfterDepositOverRevenue = revenue === 0 ? 0 : cashLowAfterDeposit / revenue;
+                
+                // Set button class based on financial impact
+                if (cashLowAfterDeposit <= 0 || cashLowAfterDepositOverRevenue < 2) {
+                    buttonColor = '#dc3545'; // Red - danger
+                    textColor = 'white';
+                    buttonClass += ' lease-btn-red';
+                } else if (cashLowAfterDepositOverRevenue < 3) {
+                    buttonColor = '#ffc107'; // Yellow - warning
+                    textColor = 'black';
+                    buttonClass += ' lease-btn-yellow';
+                } else {
+                    buttonColor = '#28a745'; // Green - good
+                    textColor = 'white';
+                    buttonClass += ' lease-btn-green';
+                }
+                
+                buttonStyle = `background-color:${buttonColor};color:${textColor};border:1px solid ${buttonColor};`;
+                
+                // Create the button with direct inline onclick handler that calls LeasePurchaser immediately
+                buttonHtml = `<button type="button" class="${buttonClass}" 
+                    style="padding:5px 15px;border-radius:3px;cursor:pointer;font-weight:bold;${buttonStyle}"
+                    onclick="LeasePurchaser.call(window.currentDeals[${index}]);this.disabled=true;this.style.opacity='0.65';this.style.backgroundColor='#6c757d';this.style.border='1px solid #6c757d';">
+                    Lease
+                </button>`;
             } else {
-              leaseBuyButton.style.backgroundColor = '#28a745';
-              leaseBuyButton.style.color = 'white';
-              leaseBuyButton.style.border = '1px solid #28a745';
+                // Disabled button styling
+                buttonHtml = `<button type="button" disabled
+                    style="padding:5px 15px;border-radius:3px;font-weight:bold;background-color:#6c757d;color:white;border:1px solid #6c757d;opacity:0.65;">
+                    Lease
+                </button>`;
             }
-          } else {
-            leaseBuyButton.disabled = true;
-            leaseBuyButton.style.backgroundColor = '#6c757d';
-            leaseBuyButton.style.color = 'white';
-            leaseBuyButton.style.border = '1px solid #6c757d';
-            leaseBuyButton.style.opacity = '0.65';
-          }
-          
-          dealFragment.appendChild(el);
+            
+            // Build the complete HTML for this deal
+            var dealHtml = `
+                <div class="border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3">
+                    <p>Price: ${priceText}</p>
+                    <p>Area: ${areaText}</p>
+                    <p>Deposit: ${depositText}</p>
+                    ${buttonHtml}
+                </div>
+            `;
+            
+            // Add this deal's HTML to our array
+            tempDealsHtml.push(dealHtml);
         });
         
-        dealsEl.appendChild(dealFragment);
+        // Make the deals available globally for the inline handlers to access
+        window.currentDeals = deals;
         
-        // Add event listeners after all elements are in DOM
-        deals.forEach(function (deal) {
-          var lease = deal.lease();
-          var dealId = (typeof deal.id === 'function') ? deal.id() : "deal_" + lease.area() + "_" + lease.pricePerSquareFoot();
-          var buttonId = 'buy-button-' + dealId;
-          var button = document.getElementById(buttonId);
-          
-          if (button && !button.disabled) {
-            // Instead of cloning, create a completely new button
-            var newButton = document.createElement('button');
-            newButton.innerHTML = 'Lease';
-            newButton.id = 'buy-button-' + dealId;
-            
-            // Copy all the styling
-            newButton.style.padding = '5px 15px';
-            newButton.style.borderRadius = '3px';
-            newButton.style.cursor = 'pointer';
-            newButton.style.fontWeight = 'bold';
-            
-            // Copy the color styling based on affordability
-            if (button.style.backgroundColor) {
-              newButton.style.backgroundColor = button.style.backgroundColor;
-            }
-            if (button.style.color) {
-              newButton.style.color = button.style.color;
-            }
-            if (button.style.border) {
-              newButton.style.border = button.style.border;
-            }
-            
-            // Capture deal object for this specific button instance
-            (function(capturedDeal, capturedArea) {
-              // Single handler function to handle both click and touch
-              var handleAction = function(e) {
-                if (e) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-                
-                // Disable button immediately to prevent double-clicks
-                newButton.disabled = true;
-                newButton.style.opacity = '0.65';
-                newButton.style.backgroundColor = '#6c757d';
-                
-                console.log("Purchasing property: " + capturedArea);
-                // Call with the captured deal reference
-                setTimeout(function() {
-                  LeasePurchaser.call(capturedDeal);
-                }, 10);
-                
-                return false;
-              };
-              
-              // Direct event handlers
-              newButton.onclick = handleAction;
-              
-              // Visual feedback for pressing
-              newButton.addEventListener('mousedown', function() {
-                if (!newButton.disabled) newButton.style.opacity = '0.8';
-              });
-              
-              newButton.addEventListener('mouseup', function() {
-                if (!newButton.disabled) newButton.style.opacity = '1.0';
-              });
-              
-              // Touch events with more reliable handling
-              newButton.addEventListener('touchstart', function(e) {
-                if (!newButton.disabled) newButton.style.opacity = '0.8';
-              }, {passive: false});
-              
-              newButton.addEventListener('touchend', function(e) {
-                if (!newButton.disabled) {
-                  newButton.style.opacity = '1.0';
-                  handleAction(e);
-                }
-              }, {passive: false});
-              
-            })(deal, lease.decorate().area()); // Pass the current deal and area to the closure
-            
-            // Replace the original button
-            button.parentNode.replaceChild(newButton, button);
-          }
-        });
+        // Set all the HTML at once
+        dealsEl.innerHTML = tempDealsHtml.join('');
       }
 
       // ALWAYS redraw projects - disable caching for now
@@ -476,138 +404,55 @@ var InterfaceRepainter;
       if (!projects.length) {
         projectsEl.innerHTML = 'No projects right now.';
       } else {
+        // Clear the entire projects list
         projectsEl.innerHTML = '';
         
-        projects.forEach(function (project) {
-          var p = project.decorate();
-          var conditionsMet = project.conditionsMet();
-          
-          // Log every project condition check
-          console.log("Project: " + p.title() + " - Conditions met: " + conditionsMet);
-
-          var el = document.createElement('div');
-          el.className = 'border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3';
-
-          var titleEl = document.createElement('h5');
-          titleEl.innerHTML = p.title();
-          el.appendChild(titleEl);
-
-          var conditionsEl = document.createElement('small');
-          conditionsEl.className = 'text-muted'
-          conditionsEl.innerHTML = ' ' + p.conditions();
-          titleEl.appendChild(conditionsEl);
-
-          var descriptionEl = document.createElement('p');
-          descriptionEl.innerHTML = p.description();
-          el.appendChild(descriptionEl);
-
-          var goButton = document.createElement('button');
-          goButton.innerHTML = 'Go';
-          goButton.id = 'project-button-' + project.id();
-          
-          // Apply consistent styling with lease buttons
-          goButton.style.padding = '5px 15px';
-          goButton.style.borderRadius = '3px';
-          goButton.style.cursor = 'pointer';
-          goButton.style.fontWeight = 'bold';
-          
-          // Set button enabled state
-          if (conditionsMet) {
-            goButton.disabled = false;
-            goButton.style.backgroundColor = '#28a745';
-            goButton.style.color = 'white';
-            goButton.style.border = '1px solid #28a745';
-          } else {
-            goButton.disabled = true;
-            goButton.style.backgroundColor = '#6c757d';
-            goButton.style.color = 'white';
-            goButton.style.border = '1px solid #6c757d';
-            goButton.style.opacity = '0.65';
-          }
-          
-          el.appendChild(goButton);
-          projectsEl.appendChild(el);
+        // Create a temporary array to hold the project HTML
+        var tempProjectsHtml = [];
+        
+        // Process each project
+        projects.forEach(function(project, index) {
+            var p = project.decorate();
+            var conditionsMet = project.conditionsMet();
+            
+            // Log project condition check
+            console.log("Project: " + p.title() + " - Conditions met: " + conditionsMet);
+            
+            // Prepare button HTML based on conditions
+            var buttonHtml;
+            if (conditionsMet) {
+                // Enabled button with inline handler
+                buttonHtml = `<button type="button" class="project-button"
+                    style="padding:5px 15px;border-radius:3px;cursor:pointer;font-weight:bold;background-color:#28a745;color:white;border:1px solid #28a745;"
+                    onclick="ProjectRunner.call(window.currentProjects[${index}]);this.disabled=true;this.style.opacity='0.65';this.style.backgroundColor='#6c757d';this.style.border='1px solid #6c757d';">
+                    Go
+                </button>`;
+            } else {
+                // Disabled button
+                buttonHtml = `<button type="button" disabled
+                    style="padding:5px 15px;border-radius:3px;font-weight:bold;background-color:#6c757d;color:white;border:1px solid #6c757d;opacity:0.65;">
+                    Go
+                </button>`;
+            }
+            
+            // Build the complete project HTML
+            var projectHtml = `
+                <div class="border border-right-0 border-bottom-0 border-left-0 pt-2 pb-3">
+                    <h5>${p.title()}<small class="text-muted"> ${p.conditions()}</small></h5>
+                    <p>${p.description()}</p>
+                    ${buttonHtml}
+                </div>
+            `;
+            
+            // Add to our HTML array
+            tempProjectsHtml.push(projectHtml);
         });
         
-        // Add robust event listeners after all elements are in the DOM
-        projects.forEach(function (project) {
-          var buttonId = 'project-button-' + project.id();
-          var button = document.getElementById(buttonId);
-          
-          if (button && !button.disabled && project.conditionsMet()) {
-            // Create a completely new button instead of cloning
-            var newButton = document.createElement('button');
-            newButton.innerHTML = 'Go';
-            newButton.id = 'project-button-' + project.id();
-            
-            // Copy all styling
-            newButton.style.padding = '5px 15px';
-            newButton.style.borderRadius = '3px';
-            newButton.style.cursor = 'pointer';
-            newButton.style.fontWeight = 'bold';
-            newButton.style.backgroundColor = '#28a745';
-            newButton.style.color = 'white';
-            newButton.style.border = '1px solid #28a745';
-            
-            // Use immediately invoked function to capture project in closure
-            (function(capturedProject, capturedTitle) {
-              // Single handler function for all events
-              var handleAction = function(e) {
-                if (e) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-                
-                // Disable button immediately to prevent double-clicks
-                newButton.disabled = true;
-                newButton.style.opacity = '0.65';
-                newButton.style.backgroundColor = '#6c757d';
-                newButton.style.border = '1px solid #6c757d';
-                
-                console.log("Running project: " + capturedTitle);
-                
-                // Small timeout to ensure UI updates before potentially heavy operation
-                setTimeout(function() {
-                  ProjectRunner.call(capturedProject);
-                }, 10);
-                
-                return false;
-              };
-              
-              // Set primary click handler
-              newButton.onclick = handleAction;
-              
-              // Visual feedback handlers
-              newButton.addEventListener('mousedown', function() {
-                if (!newButton.disabled) newButton.style.opacity = '0.8';
-              });
-              
-              newButton.addEventListener('mouseup', function() {
-                if (!newButton.disabled) newButton.style.opacity = '1.0'; 
-              });
-              
-              // Touch handlers with robust checks
-              newButton.addEventListener('touchstart', function(e) {
-                if (!newButton.disabled) {
-                  e.preventDefault(); // Prevent double events
-                  newButton.style.opacity = '0.8';
-                }
-              }, {passive: false});
-              
-              newButton.addEventListener('touchend', function(e) {
-                if (!newButton.disabled) {
-                  e.preventDefault(); // Prevent double events
-                  newButton.style.opacity = '1.0';
-                  handleAction(e);
-                }
-              }, {passive: false});
-              
-            })(project, project.title()); // Pass current project references to closure
-            
-            // Replace the old button
-            button.parentNode.replaceChild(newButton, button);
-          }
-        });
+        // Make the projects available globally for the inline handlers to access
+        window.currentProjects = projects;
+        
+        // Set all the HTML at once
+        projectsEl.innerHTML = tempProjectsHtml.join('');
       }
     }
   };

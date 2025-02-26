@@ -115,21 +115,25 @@
               <h4 class='card-title'>Product</h4>
 
               <div class="product-controls">
-                <div class="product-control-item">
-                  <div class="control-label">Workstation price:</div>
-                  <div class="control-buttons">
-                    <button id='decrease-workstation-price'>-</button>
-                    <button id='increase-workstation-price'>+</button>
-                    <span id='workstation-price'></span>
+                <div class="level-group">
+                  <div class="product-control-item">
+                    <div class="control-label"><strong>Price:</strong></div>
+                    <div class="control-buttons">
+                      <button id='decrease-workstation-price'>-</button>
+                      <button id='increase-workstation-price'>+</button>
+                      <span id='workstation-price'></span>
+                    </div>
                   </div>
                 </div>
                 
-                <div class="product-control-item">
-                  <div class="control-label">Density:</div>
-                  <div class="control-buttons">
-                    <button id='decrease-density'>-</button>
-                    <button id='increase-density'>+</button>
-                    <span id='density'></span>
+                <div class="level-group">
+                  <div class="product-control-item">
+                    <div class="control-label"><strong>Density:</strong></div>
+                    <div class="control-buttons">
+                      <button id='decrease-density'>-</button>
+                      <button id='increase-density'>+</button>
+                      <span id='density'></span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -140,14 +144,16 @@
             <div class='card-body'>
               <h4 class='card-title'>Development</h4>
               
-              <div class="info-grid">
-                <div class="info-item">
-                  <strong>Spaces:</strong>
-                  <span id='space-count'></span>
-                </div>
-                <div class="info-item">
-                  <strong>Area:</strong>
-                  <span id='space-total-area'></span>
+              <div class="level-group">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <strong>Spaces:</strong>
+                    <span id='space-count'></span>
+                  </div>
+                  <div class="info-item">
+                    <strong>Area:</strong>
+                    <span id='space-total-area'></span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -157,7 +163,9 @@
         <div class='col'>
           <div class='card mb-3'>
             <div class='card-body'>
-              <h4 class='card-title'>Community</h4>
+              <h4 class='card-title'>
+                Sales & Marketing
+              </h4>
 
               <div class="gauge-row">
                 <div class="gauge-container">
@@ -170,52 +178,39 @@
                   <span id='monthly-churn-rate' style="display: none;"></span>
                 </div>
               </div>
-            </div>
-          </div>
-        
 
-          <div class='card mb-3'>
-            <div class='card-body'>
-              <h4 class='card-title'>
-                Sales
-                <small class='text-muted'>
-                  Level <span id='sales-level'></span>
-                </small>
-              </h4>
-
-              <div class="level-controls">
-                <div class="level-button">
-                  <button id='sales-level-up-button'>Level up</button>
+              <div class="level-group">
+                <div class="level-controls">
+                  <div class="level-label">
+                    <strong>Sales:</strong> Level <span id='sales-level'></span>
+                  </div>
+                  <div class="level-button">
+                    <button id='sales-level-up-button'>Level up</button>
+                  </div>
+                  <div class="level-cost">
+                    <span id='sales-level-up-cost'></span>
+                  </div>
                 </div>
-                <div class="level-cost">
-                  <span id='sales-level-up-cost'></span>
+                <div class="level-info">
+                  Volume: <span id='monthly-sales-volume'></span>
                 </div>
               </div>
-              <div class="level-info">
-                Volume: <span id='monthly-sales-volume'></span>
-              </div>
-            </div>
-          </div>
-
-          <div class='card mb-3'>
-            <div class='card-body'>
-              <h4 class='card-title'>
-                Marketing
-                <small class='text-muted'>
-                  Level <span id='marketing-level'></span>
-                </small>
-              </h4>
-
-              <div class="level-controls">
-                <div class="level-button">
-                  <button id='marketing-level-up-button'>Level up</button>
+              
+              <div class="level-group">
+                <div class="level-controls">
+                  <div class="level-label">
+                    <strong>Marketing:</strong> Level <span id='marketing-level'></span>
+                  </div>
+                  <div class="level-button">
+                    <button id='marketing-level-up-button'>Level up</button>
+                  </div>
+                  <div class="level-cost">
+                    <span id='marketing-level-up-cost'></span>
+                  </div>
                 </div>
-                <div class="level-cost">
-                  <span id='marketing-level-up-cost'></span>
+                <div class="level-info">
+                  Leads: <span id='monthly-lead-volume'></span>
                 </div>
-              </div>
-              <div class="level-info">
-                Leads: <span id='monthly-lead-volume'></span>
               </div>
             </div>
           </div>

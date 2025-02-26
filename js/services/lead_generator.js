@@ -46,7 +46,7 @@ var LeadGenerator = {
   
   call: function () {
     let marketingLevel = AppStore.marketingLevel();
-    let damping = 20;
+    let damping = 22; // Moderate damping factor (was 25, now 22)
     let power = (1 + marketingLevel) / damping;
     let pricingFactor = AppStore.defaultWorkstationPrice() / AppStore.workstationPrice();
     
@@ -56,39 +56,40 @@ var LeadGenerator = {
     let maxLeadsHandleable = 2 ** salesLevel;
     
     // Calculate standard lead generation based on marketing
-    let minLeads = Math.max(2, pricingFactor * 2 ** (marketingLevel * 0.3));
-    let maxLeads = Math.max(4, pricingFactor * 2 ** (marketingLevel * 0.3 + power));
+    let minLeads = Math.max(2, pricingFactor * 2 ** (marketingLevel * 0.28)); // Increased exponent from 0.25 to 0.28
+    let maxLeads = Math.max(4, pricingFactor * 2 ** (marketingLevel * 0.28 + power));
     
-    // Cap to what you can handle (with a little buffer for variety)
-    minLeads = Math.min(minLeads, maxLeadsHandleable * 0.5);
-    maxLeads = Math.min(maxLeads, maxLeadsHandleable * 1.2);
+    // Cap to what you can handle (with a moderate buffer)
+    minLeads = Math.min(minLeads, maxLeadsHandleable * 0.6); // Increased from 0.4 to 0.6
+    maxLeads = Math.min(maxLeads, maxLeadsHandleable * 1.2); // Increased from 1.0 to 1.2
     
     let numberOfLeads = Math.floor(Math.random() * (maxLeads - minLeads) + minLeads);
     
     console.log("Generating " + numberOfLeads + " leads");
     
-    // Create a realistic size distribution that stays consistent
-    // Companies of size 1-3 are most common (70%), 4-6 less common (25%), 7-10 rare (5%)
+    // Create a balanced company size distribution
+    // Mix of small, medium and larger companies for interesting gameplay
     var sizeDistribution = {
-      1: 0.30,
-      2: 0.25,
-      3: 0.15,
-      4: 0.10,
-      5: 0.08,
-      6: 0.07,
-      7: 0.02,
-      8: 0.01,
-      9: 0.01,
-      10: 0.01
+      1: 0.28,  // Increased from 0.25 - more small companies for easy wins
+      2: 0.24,  // Increased from 0.20 - more small companies for easy wins
+      3: 0.18,  // Increased from 0.15
+      4: 0.10,  // Decreased from 0.12
+      5: 0.08,  // Decreased from 0.10
+      6: 0.06,  // Decreased from 0.08
+      7: 0.03,  // Decreased from 0.04
+      8: 0.02,  // Decreased from 0.03
+      9: 0.01,  // Decreased from 0.02
+      10: 0.00  // Practically eliminated the hardest to place
     };
     
-    // At the start of the game, bias toward smaller companies to ensure spaces fill
+    // At the start of the game, bias more toward smaller companies
     if (AppStore.managementInformationSystem().memberUserCount() < 20) {
       sizeDistribution = {
-        1: 0.40,
-        2: 0.30,
-        3: 0.20,
-        4: 0.10
+        1: 0.40,  // Increased from 0.35 - make starting easier
+        2: 0.35,  // Increased from 0.30
+        3: 0.15,  // Decreased from 0.20
+        4: 0.08,  // Decreased from 0.10
+        5: 0.02   // Decreased from 0.05
       };
     }
     

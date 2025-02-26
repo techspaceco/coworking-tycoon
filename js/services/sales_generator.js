@@ -41,16 +41,16 @@ var SalesGenerator = {
     var mis = AppStore.managementInformationSystem();
     var needsCacheReset = false;
     
-    // Calculate sales parameters once
-    var power = (1 + salesLevel) / 10; // damping = 10
+    // Calculate sales parameters - using moderate damping for balanced growth
+    var power = (1 + salesLevel) / 12; // Moderate damping (was 15, now 12)
     var pricingFactor = AppStore.defaultWorkstationPrice() / workstationPrice;
     var maxChanceOfClose = (
       pricingFactor *
       (2 ** power) /
       (
-        ((2 ** power) + 1) *
+        ((2 ** power) + 1.2) * // Reduced denominator for better sales chance (was 1.5)
         AppStore.densityFactor()
-      )
+      ) * 0.95 // Increased multiplier to make sales more likely (was 0.85)
     );
     
     // Group leads by size for more efficient processing
@@ -96,10 +96,10 @@ var SalesGenerator = {
       for (var k = 0; k < sizeLeads.length; k++) {
         var lead = sizeLeads[k];
         
-        // Force some sales to happen early in the game
-        // Debug: Increase close rate dramatically to ensure sales happen
-        var forceSales = AppStore.managementInformationSystem().memberUserCount() < 10;
-        var closed = forceSales || Math.random() < (maxChanceOfClose * 5);
+        // Force more frequent sales at the beginning to get started
+        var forceSales = AppStore.managementInformationSystem().memberUserCount() < 8 && Math.random() < 0.5;
+        // Use a moderate multiplier for balanced difficulty (was 2, now 3)
+        var closed = forceSales || Math.random() < (maxChanceOfClose * 3);
         
         if (closed) {
           // Find best-fit space (one with smallest available capacity that fits)
