@@ -11,7 +11,27 @@ var ProjectRunner = {
       // Double-check conditions are still met before executing
       if (!project.conditionsMet()) {
         console.log("Project conditions no longer met - can't execute");
-        alert("Project conditions are no longer met. Please try again when conditions are satisfied.");
+        
+        // Show toast notification instead of alert
+        try {
+          var toast = document.getElementById('event-notification');
+          var toastTitle = document.getElementById('event-title');
+          var toastDesc = document.getElementById('event-description');
+          var toastIcon = document.getElementById('event-icon');
+          
+          if (toast && toastTitle && toastDesc) {
+            toastTitle.textContent = "Cannot Complete Project";
+            toastIcon.className = "bi bi-exclamation-circle-fill me-2";
+            toastDesc.textContent = "Project conditions are no longer met. Please try again when conditions are satisfied.";
+            
+            // Show the toast
+            var bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+          }
+        } catch (err) {
+          console.error("Error showing toast notification:", err);
+        }
+        
         needsUiUpdate = true;
         return false;
       }
@@ -48,6 +68,12 @@ var ProjectRunner = {
             if (typeof ProgressionStore !== 'undefined' && ProgressionStore.features) {
               ProgressionStore.features.salesControls.visible = true;
             }
+            
+            // Create staff member for this position
+            if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
+              console.log("ProjectRunner: Creating Sales Manager staff member");
+              StaffStore.createStaffFromProject(project.title());
+            }
           } catch (error) {
             console.error("Error showing sales controls:", error);
           }
@@ -63,8 +89,24 @@ var ProjectRunner = {
             if (typeof ProgressionStore !== 'undefined' && ProgressionStore.features) {
               ProgressionStore.features.marketingControls.visible = true;
             }
+            
+            // Create staff member for this position
+            if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
+              console.log("ProjectRunner: Creating Marketing Manager staff member");
+              StaffStore.createStaffFromProject(project.title());
+            }
           } catch (error) {
             console.error("Error showing marketing controls:", error);
+          }
+        } else if (project.title() === "Hire Office Manager") {
+          try {
+            // Create staff member for this position
+            if (typeof StaffStore !== 'undefined' && StaffStore.createStaffFromProject) {
+              console.log("ProjectRunner: Creating Office Manager staff member");
+              StaffStore.createStaffFromProject(project.title());
+            }
+          } catch (error) {
+            console.error("Error creating Office Manager:", error);
           }
         } else if (project.title() === "Run Community Events") {
           try {
@@ -226,17 +268,38 @@ var ProjectRunner = {
           }
         }
         
-        // Alert the user with appropriate message
-        var alertMessage;
-        if (project.title().indexOf('Raise Series') === 0) {
-          alertMessage = "Successfully raised funding: " + project.title();
-        } else {
-          alertMessage = "Project completed: " + project.title();
+        // Show confetti animation instead of alert
+        if (typeof ConfettiAnimation !== 'undefined') {
+          // Start confetti animation for 3 seconds
+          ConfettiAnimation.start(3000);
+          
+          // Show a toast message instead of an alert
+          try {
+            var toast = document.getElementById('event-notification');
+            var toastTitle = document.getElementById('event-title');
+            var toastDesc = document.getElementById('event-description');
+            var toastIcon = document.getElementById('event-icon');
+            
+            if (toast && toastTitle && toastDesc) {
+              // Set toast content based on project type
+              if (project.title().indexOf('Raise Series') === 0) {
+                toastTitle.textContent = "Funding Raised!";
+                toastIcon.className = "bi bi-cash-coin me-2";
+                toastDesc.textContent = "Successfully raised funding: " + project.title();
+              } else {
+                toastTitle.textContent = "Project Complete!";
+                toastIcon.className = "bi bi-check-circle-fill me-2";
+                toastDesc.textContent = project.title() + " has been successfully completed!";
+              }
+              
+              // Show the toast
+              var bsToast = new bootstrap.Toast(toast);
+              bsToast.show();
+            }
+          } catch (err) {
+            console.error("Error showing toast notification:", err);
+          }
         }
-        
-        setTimeout(function() {
-          alert(alertMessage);
-        }, 50);
         
         return true;
       } catch (error) {
